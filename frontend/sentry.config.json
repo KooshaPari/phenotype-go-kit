@@ -1,0 +1,20 @@
+{
+  "name": "phenotype-web",
+  "version": "1.0.0",
+  "dependencies": {
+    "@sentry/browser": "^7.100.0",
+    "@sentry/react": "^7.100.0",
+    "@sentry/tracing": "^7.100.0",
+    "@sentry/webpack-plugin": "^2.14.0"
+  },
+  "devDependencies": {
+    "@sentry/cli": "^2.28.0"
+  },
+  "sentry": {
+    "org": "phenotype",
+    "project": "phenotype-web",
+    "dist": "dist",
+    "release": "production",
+    "url": "https://sentry.io"
+  }
+}
