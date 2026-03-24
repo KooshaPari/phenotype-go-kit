@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Database Scaling Infrastructure** (WBS #91-120):
+  - **Connection Pool Configuration** (#96): Configurable pool with max open/idle connections, lifetime settings
+  - **Database Indexes** (#91-94): Composite and partial indexes for users, webhooks, jobs tables
+  - **Redis Caching Layer** (#101): Get/Set/Delete/JSON operations, sorted sets, TTL management
+  - **Cache Invalidation** (#102): Tag-based invalidation strategies, pattern-based deletion
+  - **Cache Warming** (#103): Preload frequently accessed data, fill missing cache entries
+  - **Query Optimization** (#97-100): Query builder, slow query logging, pagination, explain plans
+
 - **Observability Infrastructure** (WBS #61-90):
   - **Structured Logging** (#61): JSON log schema with timestamp, level, message, attributes, trace/span IDs
   - **Global Logging Interceptor** (#62): HTTP middleware with automatic trace ID propagation
