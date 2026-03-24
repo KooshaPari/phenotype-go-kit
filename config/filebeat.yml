@@ -1,0 +1,42 @@
+# Filebeat Configuration for Phenotype
+# Place in /etc/filebeat/filebeat.yml
+
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/phenotype/*.log
+    json:
+      keys_under_root: true
+      overwrite_keys: true
+    fields:
+      service: phenotype-go-kit
+      environment: ${ENVIRONMENT:production}
+
+  - type: log
+    enabled: true
+    paths:
+      - /var/log/phenotype/access.log
+    multiline.pattern: '^\d{4}-\d{2}-\d{2}'
+    multiline.negate: true
+    multiline.match: after
+    fields:
+      service: phenotype-http
+      environment: ${ENVIRONMENT:production}
+
+processors:
+  - add_host_metadata:
+      when.not.contains.tags: forwarded
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
+
+output.logstash:
+  hosts: ["logstash:5044"]
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644
