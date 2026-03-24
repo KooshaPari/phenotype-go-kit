@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Data Layer** (WBS #181-210):
+  - **Data Validation** (#181-183): Validator with required, email, min/max, pattern rules
+  - **Data Transformation** (#184-186): Struct to map conversion, flattening, merging
+  - **Repository Pattern** (#187-189): SQL repository with CRUD, filtering, pagination
+  - **Data Transformation Utilities** (#190-192): JSON conversion, field mapping
+
 - **Microservices Communication** (WBS #151-180):
   - **Event Bus** (#151-153): Local event bus with pub/sub, async publishing
   - **Service Discovery** (#154-156): Registry with registration, health checks, load balancing
