@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **API Gateway & Auth** (WBS #121-150):
+  - **JWT Authentication** (#121-123): JWT generation/validation, token refresh, middleware
+  - **API Key Management** (#124): API key generation, validation, revocation
+  - **Rate Limiting** (#125-127): Token bucket rate limiter, middleware, distributed support
+  - **CORS Configuration** (#128): Allowed origins, methods, headers, credentials
+  - **API Versioning** (#129): Header/query parameter versioning, Accept header parsing
+  - **OAuth2 Provider** (#130): Google/GitHub OAuth2 integration, PKCE support, session management
+
 - **Database Scaling Infrastructure** (WBS #91-120):
   - **Connection Pool Configuration** (#96): Configurable pool with max open/idle connections, lifetime settings
   - **Database Indexes** (#91-94): Composite and partial indexes for users, webhooks, jobs tables
