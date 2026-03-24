@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Frontend Infrastructure** (WBS #211-240):
+  - **HTTP Client** (#211-213): API client with auth, retry, error handling
+  - **State Management** (#214-216): State containers, store with actions, reducers
+  - **Form Validation** (#217-219): Form fields, validation rules, required/email/min/max/pattern
+  - **UI Utilities** (#220-222): HTML escaping, date formatting, string helpers, slugify
+
 - **Data Layer** (WBS #181-210):
   - **Data Validation** (#181-183): Validator with required, email, min/max, pattern rules
   - **Data Transformation** (#184-186): Struct to map conversion, flattening, merging
