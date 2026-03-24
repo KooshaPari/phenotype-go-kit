@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **CI/CD Pipeline** (WBS #241-270):
+  - **Pipeline Definition** (#241-243): Pipeline stages, build/test/deploy/lint/security
+  - **Docker Configuration** (#244-246): Docker image parsing, docker-compose config
+  - **Kubernetes Deployment** (#247-249): K8s deployer, Helm deployer, rollout/rollback
+  - **Secrets Management** (#250-252): Vault/AWS secrets integration, env generation
+
 - **Frontend Infrastructure** (WBS #211-240):
   - **HTTP Client** (#211-213): API client with auth, retry, error handling
   - **State Management** (#214-216): State containers, store with actions, reducers
