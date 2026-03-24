@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Microservices Communication** (WBS #151-180):
+  - **Event Bus** (#151-153): Local event bus with pub/sub, async publishing
+  - **Service Discovery** (#154-156): Registry with registration, health checks, load balancing
+  - **Circuit Breaker** (#157-159): Circuit breaker pattern with configurable thresholds
+  - **Retry with Backoff** (#160-162): Exponential backoff with jitter, permanent error handling
+
 - **API Gateway & Auth** (WBS #121-150):
   - **JWT Authentication** (#121-123): JWT generation/validation, token refresh, middleware
   - **API Key Management** (#124): API key generation, validation, revocation
