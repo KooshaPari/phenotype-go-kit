@@ -1,5 +1,3 @@
-version: "2"
-
 linters:
   enable:
     - errcheck
@@ -21,7 +19,6 @@ linters:
       extra-rules: true
     misspell:
       locale: US
-
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
