@@ -3,7 +3,7 @@ package outbound
 import (
 	"context"
 
-	"github.com/Phenotype/phenotype-go-kit/contracts/models"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/models"
 )
 
 // Repository defines the interface for data persistence.

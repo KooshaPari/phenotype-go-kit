@@ -3,7 +3,7 @@ package inbound
 import (
 	"context"
 
-	"github.com/Phenotype/phenotype-go-kit/contracts/models"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/models"
 )
 
 // UseCase defines the interface for application use cases.
