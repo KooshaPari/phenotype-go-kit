@@ -33,20 +33,76 @@ Each package is independent with minimal dependencies.
 
 ## Structure
 
+### Top-Level Directories
+
 ```
-logctx/      # Context-scoped slog logger
-ringbuffer/  # Generic ring buffer
-waitfor/     # Polling with timeout (uses github.com/coder/quartz)
-registry/    # Thread-safe registry with ref counting & quota
+phenotype-go-kit/
+├── contracts/              # Port interfaces (not implementation)
+│   ├── ports/
+│   │   ├── inbound/       # Driving ports (UseCase, CommandHandler, QueryHandler)
+│   │   └── outbound/      # Driven ports (Repository, Cache, EventPublisher)
+│   ├── models/            # Domain models and events
+│   └── plugins/           # Plugin system interfaces
+│
+├── plugins/                # Plugin implementations
+│   └── embeddings/        # AI embeddings providers (OpenAI, Ollama)
+│
+├── cache/                  # Cache implementation (Redis)
+│   ├── adapter/           # Secondary adapters (RedisCacheAdapter)
+│   └── service/           # Application services (CQRS handlers)
+│
+├── auth/                  # Authentication
+├── db/                    # Database utilities
+├── logging/               # Logging utilities
+└── ...
 ```
 
-## Conventions
+## Design Principles
 
-- Each package is self-contained with `_test.go` alongside
-- No inter-package dependencies
-- External deps minimized (only `quartz` for waitfor)
-- Thread-safe by default where applicable (registry uses sync.RWMutex)
-- Generic type parameters where appropriate (ringbuffer, registry)
+This repository follows **Hexagonal Architecture** with **SOLID**, **GRASP**, **Law of Demeter**, and **SoC**.
+
+### SOLID Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **SRP** | Single Responsibility - one reason to change |
+| **OCP** | Open/Closed - extend, don't modify |
+| **LSP** | Liskov Substitution - subtypes substitutable |
+| **ISP** | Interface Segregation - small, focused interfaces |
+| **DIP** | Dependency Inversion - depend on abstractions |
+
+### GRASP Patterns
+
+| Pattern | Applied As |
+|---------|------------|
+| Information Expert | Entity knows its own ID |
+| Creator | Factory creates repositories |
+| Controller | UseCaseHandler receives input |
+| Low Coupling | Ports define minimal interfaces |
+| High Cohesion | Package-by-feature structure |
+
+### Law of Demeter (LoD)
+
+> Only talk to immediate collaborators.
+
+```go
+// GOOD: Tell, don't ask
+service.Call(ctx, request)
+
+// BAD: Train-wreck
+user.GetSession().GetToken().Use()
+```
+
+## ADRs (Architecture Decision Records)
+
+| ID | Title | Status |
+|----|-------|--------|
+| ADR-001 | Hexagonal Architecture | Accepted |
+| ADR-002 | xDD Methodologies Reference | Reference |
+| ADR-003 | Top-Level Directory Structure | Accepted |
+| ADR-004 | Plugin System & Extensibility | Accepted |
+| ADR-005 | AI Embeddings Plugin System | Accepted |
+| ADR-006 | Design Principles (SOLID, GRASP, LoD) | Accepted |
 
 ## CI Completeness Policy
 
