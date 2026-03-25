@@ -110,7 +110,7 @@ type QueryCriteria struct {
 	Filter map[string]any
 
 	// Pagination for the query.
-	Limit int
+	Limit  int
 	Offset int
 
 	// Sort specifies sorting criteria.

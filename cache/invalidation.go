@@ -63,17 +63,17 @@ func (i *InvalidateByTags) Invalidate(ctx context.Context, cache *Cache, tags ..
 
 // CacheWarmer preloads frequently accessed data into cache.
 type CacheWarmer struct {
-	cache  *Cache
+	cache   *Cache
 	fetcher func(ctx context.Context, key string) (string, time.Duration, error)
-	logger *slog.Logger
+	logger  *slog.Logger
 }
 
 // NewCacheWarmer creates a new cache warmer.
 func NewCacheWarmer(cache *Cache, fetcher func(ctx context.Context, key string) (string, time.Duration, error)) *CacheWarmer {
 	return &CacheWarmer{
-		cache:  cache,
+		cache:   cache,
 		fetcher: fetcher,
-		logger: slog.Default(),
+		logger:  slog.Default(),
 	}
 }
 
@@ -84,12 +84,12 @@ func (w *CacheWarmer) WarmKey(ctx context.Context, key string) error {
 		w.logger.Error("cache warm failed", "key", key, "error", err)
 		return err
 	}
-	
+
 	if err := w.cache.Set(ctx, key, value, ttl); err != nil {
 		w.logger.Error("cache set failed", "key", key, "error", err)
 		return err
 	}
-	
+
 	w.logger.Debug("cache warmed", "key", key, "ttl", ttl)
 	return nil
 }
@@ -110,7 +110,7 @@ func (w *CacheWarmer) WarmByPattern(ctx context.Context, pattern string, fetchKe
 	if err != nil {
 		return err
 	}
-	
+
 	// Filter to only missing keys
 	missing := make([]string, 0)
 	for _, key := range keys {
@@ -119,12 +119,12 @@ func (w *CacheWarmer) WarmByPattern(ctx context.Context, pattern string, fetchKe
 			missing = append(missing, key)
 		}
 	}
-	
+
 	if len(missing) == 0 {
 		w.logger.Debug("all keys already cached", "pattern", pattern)
 		return nil
 	}
-	
+
 	w.logger.Info("warming cache", "pattern", pattern, "count", len(missing))
 	return w.WarmKeys(ctx, missing)
 }
@@ -146,16 +146,16 @@ func NewTagBasedCache(cache *Cache) *TagBasedCache {
 // SetWithTags stores a value with associated tags.
 func (t *TagBasedCache) SetWithTags(ctx context.Context, key string, value string, ttl time.Duration, tags ...string) error {
 	pipe := t.cache.client.Pipeline()
-	
+
 	// Store the value
 	pipe.Set(ctx, t.cache.prefix+key, value, ttl)
-	
+
 	// Store tag associations
 	for _, tag := range tags {
 		tagKey := t.tagKey + ":" + tag + ":" + key
 		pipe.Set(ctx, t.cache.prefix+tagKey, "1", ttl)
 	}
-	
+
 	_, err := pipe.Exec(ctx)
 	return err
 }
@@ -167,7 +167,7 @@ func (t *TagBasedCache) GetTags(ctx context.Context, key string) ([]string, erro
 	if err != nil {
 		return nil, err
 	}
-	
+
 	tags := make([]string, 0, len(keys))
 	for _, k := range keys {
 		// Extract tag from key format: tags:tagName:originalKey
@@ -186,7 +186,7 @@ func (t *TagBasedCache) InvalidateByTag(ctx context.Context, tag string) error {
 	if err != nil {
 		return err
 	}
-	
+
 	if len(keys) > 0 {
 		// Extract original keys from tag keys
 		originalKeys := make([]string, 0)
@@ -196,7 +196,7 @@ func (t *TagBasedCache) InvalidateByTag(ctx context.Context, tag string) error {
 				originalKeys = append(originalKeys, parts[2])
 			}
 		}
-		
+
 		// Delete original keys and tag keys
 		allKeys := append(originalKeys, keys...)
 		_, err = t.cache.client.Del(ctx, allKeys...).Result()
