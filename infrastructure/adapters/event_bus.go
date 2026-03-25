@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"phenotype-go-kit/domain/ports"
+	github.com/KooshaPari/phenotype-go-kit/domain/ports"
 )
 
 // EventBusPort defines the interface for event publishing.

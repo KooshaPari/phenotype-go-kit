@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/phenotype/phenotype-go-kit/contracts/plugins"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/plugins"
 )
 
 // OpenAIProvider implements Provider for OpenAI API.

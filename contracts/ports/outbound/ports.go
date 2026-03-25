@@ -164,3 +164,26 @@ type ConfigProvider interface {
 	// Subscribe registers a callback for configuration changes.
 	Subscribe(ctx context.Context, key string, callback func(any)) error
 }
+
+// AdapterManifest provides metadata about an adapter implementation.
+// Following PoLA: Adapters declare their capabilities explicitly.
+type AdapterManifest struct {
+	// Name is the unique name of the adapter.
+	Name string
+
+	// Version is the semantic version of the adapter.
+	Version string
+
+	// Description describes what the adapter does.
+	Description string
+
+	// Provides lists the port interfaces this adapter implements.
+	Provides []string
+}
+
+// Adapter is implemented by all adapters to provide self-description.
+// Following SoC: Adapters self-document their capabilities.
+type Adapter interface {
+	// Manifest returns the adapter's manifest.
+	Manifest() *AdapterManifest
+}

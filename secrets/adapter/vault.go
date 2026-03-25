@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"phenotype-go-kit/contracts/ports/outbound"
+	github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 // VaultAdapter implements outbound.SecretPort for HashiCorp Vault.

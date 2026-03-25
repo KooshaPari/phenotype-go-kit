@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	"phenotype-go-kit/domain/entities"
-	"phenotype-go-kit/domain/ports"
+	github.com/KooshaPari/phenotype-go-kit/domain/entities"
+	github.com/KooshaPari/phenotype-go-kit/domain/ports"
 )
 
 // ValidationError represents a validation failure.
