@@ -1,0 +1,28 @@
+version: '3'
+
+tasks:
+  ci:
+    desc: "Run local CI checks (mirrors GitHub Actions)"
+    cmds:
+      - ./scripts/ci-local.sh
+
+  lint:
+    cmds:
+      - go vet ./...
+
+  test:
+    cmds:
+      - go test ./...
+
+  build:
+    cmds:
+      - go build ./...
+
+  fmt:
+    cmds:
+      - gofmt -l -w .
+
+  quality:
+    desc: "Run full quality pipeline"
+    cmds:
+      - task: ci
