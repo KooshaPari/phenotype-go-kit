@@ -7,8 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/phenotype/phenotype-go-kit/contracts/ports/inbound"
-	"github.com/phenotype/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/inbound"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 // Errors for cache service.
