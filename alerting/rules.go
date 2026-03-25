@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Phenotype Enterprise. All rights reserved.
+// Licensed under the Phenotype Standard License.
+
 package alerting
 
 import (
@@ -254,7 +257,7 @@ func ParseDuration(s string) (time.Duration, error) {
 	}
 
 	var value int
-	fmt.Sscanf(matches[1], "%d", &value)
+	_, _ = fmt.Sscanf(matches[1], "%d", &value)
 
 	switch matches[2] {
 	case "s":

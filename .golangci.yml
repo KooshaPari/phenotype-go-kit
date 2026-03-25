@@ -1,14 +1,11 @@
-version: "2"
-
+version: 2
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
     - unused
-    - gofumpt
     - misspell
     - noctx
     - bodyclose
@@ -16,11 +13,9 @@ linters:
     - unconvert
     - unparam
     - whitespace
-
 linters-settings:
   gofumpt:
     extra-rules: true
-
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
