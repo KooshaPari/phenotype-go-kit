@@ -17,10 +17,10 @@ import (
 )
 
 var (
-	_ outbound.AuthPort         = (*JWTValidatorAdapter)(nil)
-	_ outbound.TokenGenerator   = (*JWTValidatorAdapter)(nil)
-	_ outbound.TokenValidator    = (*JWTValidatorAdapter)(nil)
-	_ outbound.APIKeyPort        = (*APIKeyManagerAdapter)(nil)
+	_ outbound.AuthPort       = (*JWTValidatorAdapter)(nil)
+	_ outbound.TokenGenerator = (*JWTValidatorAdapter)(nil)
+	_ outbound.TokenValidator = (*JWTValidatorAdapter)(nil)
+	_ outbound.APIKeyPort     = (*APIKeyManagerAdapter)(nil)
 )
 
 // Standard errors for auth adapters.
@@ -394,7 +394,7 @@ func (u *ContextUser) HasAnyRole(required ...string) bool {
 // HTTPHeaders extracts auth info for HTTP headers.
 func (u *ContextUser) HTTPHeaders() map[string]string {
 	return map[string]string{
-		"X-User-ID": u.UserID,
+		"X-User-ID":    u.UserID,
 		"X-User-Email": u.Email,
 		"X-User-Roles": strings.Join(u.Roles, ","),
 	}
