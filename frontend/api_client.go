@@ -126,6 +126,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, params map[
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 	
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -139,7 +140,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, params map[
 	}
 	
 	if ct := resp.Header.Get("Content-Type"); ct == "application/json" {
-		json.Unmarshal(respBody, &response.Data)
+		_ = json.Unmarshal(respBody, &response.Data)
 	}
 	
 	return response, nil

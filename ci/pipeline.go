@@ -59,7 +59,7 @@ func (p *Pipeline) Run(ctx context.Context) error {
 func (p *Pipeline) runStage(ctx context.Context, stage *Stage) error {
 	// Set environment variables
 	for k, v := range stage.Env {
-		os.Setenv(k, v)
+		_ = os.Setenv(k, v)
 		defer os.Unsetenv(k)
 	}
 	
