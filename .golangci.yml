@@ -5,8 +5,5 @@ linters:
   enable:
     - govet
     - unused
-
-issues:
-  exclude-use-default: true
-  max-issues-per-linter: 0
-  max-same-issues: 0
+run:
+  go: "1.24"
