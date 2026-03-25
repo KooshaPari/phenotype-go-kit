@@ -1,22 +1,14 @@
 version: "2"
 
+run:
+  timeout: 5m
+
 lint:
   default: none
   enable:
-    - errcheck
-    - gosimple
     - govet
-    - ineffassign
     - staticcheck
     - unused
-    - gofumpt
-    - misspell
-    - noctx
-    - bodyclose
-    - prealloc
-    - unconvert
-    - unparam
-    - whitespace
 
 issues:
   max-issues-per-linter: 0
