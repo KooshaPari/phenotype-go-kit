@@ -1,6 +1,10 @@
 name: CI
 
 on:
+  push:
+    branches: [main, backend-jobs, fix/golangci-v2-clean]
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -41,7 +45,6 @@ jobs:
 
   lint:
     name: Lint
-    continue-on-error: true
     runs-on: ubuntu-latest
 
     steps:
@@ -54,8 +57,7 @@ jobs:
           cache: true
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
+        uses: golangci/golangci-lint-action@v6
         with:
           version: latest
-          install-mode: goroutine
           args: --timeout=5m --disable=SA1029 --disable=SA1019 --disable=S1001 --disable=S1017 --disable=unused --disable=misspell --disable=whitespace --disable=gofumpt --disable=gosimple
