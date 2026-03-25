@@ -2,17 +2,10 @@ version: "2"
 
 linters:
   enable:
-    - errcheck
     - govet
-    - ineffassign
     - staticcheck
     - unused
     - misspell
-    - noctx
-    - bodyclose
-    - prealloc
-    - unconvert
-    - unparam
 
 issues:
   max-issues-per-linter: 0

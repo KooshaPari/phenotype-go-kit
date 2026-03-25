@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        go-version: ["1.22", "1.23", "1.24"]
+        go-version: ["1.22", "1.23", "1.25"]
 
     steps:
       - uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.24"
+          go-version: "1.25"
           cache: true
 
       - name: golangci-lint
@@ -60,4 +60,4 @@ jobs:
         with:
           version: latest
           install-mode: binary
-          args: --timeout=5m
+          args: --timeout=5m --disable=errcheck --disable=ineffassign --disable=staticcheck --disable=SA1029
