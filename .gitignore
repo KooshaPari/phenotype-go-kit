@@ -19,5 +19,8 @@
 # Vendor (use modules)
 vendor/
 worktrees/
-worktrees/
-worktrees/
+
+# VitePress
+docs/.vitepress/dist
+node_modules
+>>>>>>> origin/main
