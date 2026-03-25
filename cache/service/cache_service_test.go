@@ -7,12 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/phenotype/phenotype-go-kit/contracts/ports/inbound"
-github.com/KooshaPari/phenotype-go-kit/contracts/ports/inbound
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/inbound"
 	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
+)
 
 // mockCache implements outbound.CacheJSONPort for testing.
-// Following Law of Demeter - only exposes needed operations.
 type mockCache struct {
 	mu   sync.RWMutex
 	data map[string]string
@@ -29,7 +28,6 @@ func newMockCache() *mockCache {
 func (m *mockCache) Get(ctx context.Context, key string) (string, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-
 	if _, ok := m.data[key]; !ok {
 		return "", outbound.ErrKeyNotFound
 	}
@@ -39,7 +37,6 @@ func (m *mockCache) Get(ctx context.Context, key string) (string, error) {
 func (m *mockCache) Set(ctx context.Context, key, value string, ttl time.Duration) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
 	if ttl <= 0 {
 		return outbound.ErrInvalidTTL
 	}
@@ -51,7 +48,6 @@ func (m *mockCache) Set(ctx context.Context, key, value string, ttl time.Duratio
 func (m *mockCache) SetNX(ctx context.Context, key, value string, ttl time.Duration) (bool, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
 	if _, ok := m.data[key]; ok {
 		return false, nil
 	}
@@ -63,7 +59,6 @@ func (m *mockCache) SetNX(ctx context.Context, key, value string, ttl time.Durat
 func (m *mockCache) Delete(ctx context.Context, key string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
 	delete(m.data, key)
 	delete(m.ttls, key)
 	return nil
@@ -72,7 +67,6 @@ func (m *mockCache) Delete(ctx context.Context, key string) error {
 func (m *mockCache) Exists(ctx context.Context, key string) (bool, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-
 	_, ok := m.data[key]
 	return ok, nil
 }
@@ -80,7 +74,6 @@ func (m *mockCache) Exists(ctx context.Context, key string) (bool, error) {
 func (m *mockCache) Expire(ctx context.Context, key string, ttl time.Duration) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
-
 	if _, ok := m.data[key]; !ok {
 		return outbound.ErrKeyNotFound
 	}
@@ -91,7 +84,6 @@ func (m *mockCache) Expire(ctx context.Context, key string, ttl time.Duration) e
 func (m *mockCache) TTL(ctx context.Context, key string) (time.Duration, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-
 	ttl, ok := m.ttls[key]
 	if !ok {
 		return 0, outbound.ErrKeyNotFound
@@ -112,7 +104,6 @@ func (m *mockCache) GetJSON(ctx context.Context, key string, dest interface{}) e
 	if err != nil {
 		return err
 	}
-	// Simple string storage for testing
 	if s, ok := dest.(*string); ok {
 		*s = val
 	}
@@ -120,14 +111,11 @@ func (m *mockCache) GetJSON(ctx context.Context, key string, dest interface{}) e
 }
 
 func (m *mockCache) SetJSON(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
-	// Simple string storage for testing
 	if s, ok := value.(string); ok {
 		return m.Set(ctx, key, s, ttl)
 	}
 	return m.Set(ctx, key, "json-value", ttl)
 }
-
-// Tests
 
 func TestCacheService_SetCacheHandler(t *testing.T) {
 	cache := newMockCache()
@@ -146,7 +134,6 @@ func TestCacheService_SetCacheHandler(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	// Verify
 	val, err := cache.Get(ctx, "test-key")
 	if err != nil {
 		t.Fatalf("expected value, got error: %v", err)
@@ -165,7 +152,7 @@ func TestCacheService_SetCacheHandler_InvalidTTL(t *testing.T) {
 	cmd := inbound.SetCacheCommand{
 		Key:   "test-key",
 		Value: "test-value",
-		TTL:   0, // Invalid
+		TTL:   0,
 	}
 
 	err := handler(ctx, cmd)
@@ -184,7 +171,6 @@ func TestCacheService_GetCacheHandler(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Test existing key
 	query := inbound.GetCacheQuery{Key: "existing-key"}
 	val, err := handler(ctx, query)
 	if err != nil {
@@ -194,7 +180,6 @@ func TestCacheService_GetCacheHandler(t *testing.T) {
 		t.Errorf("expected 'existing-value', got %q", val)
 	}
 
-	// Test missing key
 	query = inbound.GetCacheQuery{Key: "missing-key"}
 	_, err = handler(ctx, query)
 	if !errors.Is(err, ErrKeyNotFound) {
@@ -217,7 +202,6 @@ func TestCacheService_DeleteCacheHandler(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	// Verify deleted
 	_, err = cache.Get(ctx, "delete-key")
 	if !errors.Is(err, outbound.ErrKeyNotFound) {
 		t.Errorf("expected ErrKeyNotFound after delete, got %v", err)
@@ -242,7 +226,6 @@ func TestCacheService_ExpireCacheHandler(t *testing.T) {
 		t.Fatalf("expected no error, got %v", err)
 	}
 
-	// Verify TTL set
 	ttl, err := cache.TTL(ctx, "expire-key")
 	if err != nil {
 		t.Fatalf("expected TTL, got error: %v", err)
@@ -261,7 +244,6 @@ func TestCacheService_ExistsCacheHandler(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Test existing key
 	query := inbound.ExistsCacheQuery{Key: "exists-key"}
 	exists, err := handler(ctx, query)
 	if err != nil {
@@ -271,7 +253,6 @@ func TestCacheService_ExistsCacheHandler(t *testing.T) {
 		t.Error("expected key to exist")
 	}
 
-	// Test missing key
 	query = inbound.ExistsCacheQuery{Key: "missing-key"}
 	exists, err = handler(ctx, query)
 	if err != nil {
@@ -281,8 +262,6 @@ func TestCacheService_ExistsCacheHandler(t *testing.T) {
 		t.Error("expected key to not exist")
 	}
 }
-
-// Benchmark
 
 func BenchmarkCacheService_SetCacheHandler(b *testing.B) {
 	cache := newMockCache()

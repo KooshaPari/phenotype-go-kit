@@ -133,7 +133,7 @@ func (s *CacheService) TTLCacheHandler() inbound.TTLHandler {
 
 		result := inbound.TTLResult{
 			Exists:   ttl > 0 || strings.Contains(err.Error(), "no expiry"),
-			HasTTL:   !ttl.IsNeg() && !ttl.IsZero(),
+			HasTTL:   ttl > 0,
 			Duration: int64(ttl.Seconds()),
 		}
 
