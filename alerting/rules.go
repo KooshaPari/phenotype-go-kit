@@ -257,7 +257,7 @@ func ParseDuration(s string) (time.Duration, error) {
 	}
 
 	var value int
-	fmt.Sscanf(matches[1], "%d", &value)
+	_, _ = fmt.Sscanf(matches[1], "%d", &value)
 
 	switch matches[2] {
 	case "s":
