@@ -1,6 +1,7 @@
 version: "2"
 
-linters:
+lint:
+  default: none
   enable:
     - errcheck
     - gosimple
@@ -16,10 +17,6 @@ linters:
     - unconvert
     - unparam
     - whitespace
-
-linters-settings:
-  gofumpt:
-    extra-rules: true
 
 issues:
   max-issues-per-linter: 0
