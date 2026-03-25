@@ -3,12 +3,10 @@ version: "2"
 linters:
   enable:
     - errcheck
-    - gosimple
     - govet
     - ineffassign
     - staticcheck
     - unused
-    - gofumpt
     - misspell
     - noctx
     - bodyclose
@@ -17,9 +15,7 @@ linters:
     - unparam
     - whitespace
 
-linters-settings:
-  gofumpt:
-    extra-rules: true
+linters-settings: {}
 
 issues:
   max-issues-per-linter: 0
