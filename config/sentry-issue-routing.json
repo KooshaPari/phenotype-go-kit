@@ -1,0 +1,131 @@
+{
+  "organization": {
+    "slug": "phenotype"
+  },
+  "projects": [
+    {
+      "slug": "phenotype-web",
+      "platform": "javascript",
+      "settings": {
+        "defaultRules": true,
+        "aiResolution": false
+      }
+    },
+    {
+      "slug": "phenotype-api",
+      "platform": "python",
+      "settings": {
+        "defaultRules": true,
+        "aiResolution": false
+      }
+    }
+  ],
+  "rules": [
+    {
+      "conditions": [
+        {
+          "attribute": "level",
+          "operator": "gte",
+          "value": "error"
+        }
+      ],
+      "actions": [
+        {
+          "targetType": "issueOwner",
+          "target": null,
+          "fallbackTarget": "team",
+          "fallbackTeam": "backend"
+        }
+      ]
+    },
+    {
+      "conditions": [
+        {
+          "attribute": "tags",
+          "operator": "eq",
+          "value": "auth"
+        }
+      ],
+      "actions": [
+        {
+          "targetType": "team",
+          "target": "security"
+        }
+      ]
+    },
+    {
+      "conditions": [
+        {
+          "attribute": "exceptionType",
+          "operator": "contains",
+          "value": "Database"
+        }
+      ],
+      "actions": [
+        {
+          "targetType": "team",
+          "target": "database-team"
+        }
+      ]
+    },
+    {
+      "conditions": [
+        {
+          "attribute": "exceptionType",
+          "operator": "contains",
+          "value": "OutOfMemory"
+        }
+      ],
+      "actions": [
+        {
+          "targetType": "team",
+          "target": "platform"
+        },
+        {
+          "targetType": "serviceHook",
+          "service": "pagerduty",
+          "integrationId": "pagerduty-integration"
+        }
+      ]
+    }
+  ],
+  "teams": [
+    {
+      "slug": "backend",
+      "name": "Backend Team",
+      "members": ["user1@phenotype.dev", "user2@phenotype.dev"]
+    },
+    {
+      "slug": "frontend",
+      "name": "Frontend Team",
+      "members": ["user3@phenotype.dev"]
+    },
+    {
+      "slug": "security",
+      "name": "Security Team",
+      "members": ["security@phenotype.dev"]
+    },
+    {
+      "slug": "database-team",
+      "name": "Database Team",
+      "members": ["dba@phenotype.dev"]
+    },
+    {
+      "slug": "platform",
+      "name": "Platform Team",
+      "members": ["platform@phenotype.dev"]
+    }
+  ],
+  "routingRules": [
+    {
+      "name": "Production errors to on-call",
+      "match": "environment:production AND level:error",
+      "routeTo": "on-call-rotation"
+    },
+    {
+      "name": "Security issues to security team",
+      "match": "tags:security",
+      "routeTo": "security-team"
+    }
+  ]
+}
