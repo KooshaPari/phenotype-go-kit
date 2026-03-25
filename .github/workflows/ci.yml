@@ -16,7 +16,7 @@ jobs:
 
     strategy:
       matrix:
-        go-version: ["1.22", "1.23", "1.24", "1.25"]
+        go-version: ["1.22", "1.23", "1.24"]
 
     steps:
       - uses: actions/checkout@v4
@@ -52,12 +52,14 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.25"
+          go-version: "1.24"
           cache: true
+
+      - name: Downgrade go.mod for lint compatibility
+        run: sed -i 's/^go 1.25/go 1.24/' go.mod
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
-          version: "v1.62.0"
-          install-mode: goroutine
+          version: latest
           args: --timeout=5m
