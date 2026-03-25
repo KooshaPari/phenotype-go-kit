@@ -1,4 +1,5 @@
-version: 2
+version: "2"
+
 linters:
   enable:
     - errcheck
@@ -15,9 +16,12 @@ linters:
     - unconvert
     - unparam
     - whitespace
-linters-settings:
-  gofumpt:
-    extra-rules: true
+  settings:
+    gofumpt:
+      extra-rules: true
+    misspell:
+      locale: US
+
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
