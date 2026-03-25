@@ -55,11 +55,11 @@ jobs:
           go-version: "1.24"
           cache: true
 
-      - name: Downgrade go.mod for lint compatibility
-        run: sed -i 's/^go 1.25/go 1.24/' go.mod && go mod download
+      - name: Fix go.mod for lint compatibility
+        run: sed -i 's/^go 1.25/go 1.24/' go.mod
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v6
         with:
           version: latest
-          args: --timeout=5m
+          args: --timeout=5m --go=1.24
