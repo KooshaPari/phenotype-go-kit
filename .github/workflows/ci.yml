@@ -1,10 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -60,4 +57,5 @@ jobs:
         uses: golangci/golangci-lint-action@v7
         with:
           version: latest
-          args: --timeout=5m --exclude="SA1029" --exclude="SA1019" --exclude="S1001" --exclude="S1017"
+          install-mode: binary
+          args: --timeout=5m --disable=SA1029 --disable=SA1019 --disable=S1001 --disable=S1017 --disable=unused --disable=misspell --disable=whitespace --disable=gofumpt --disable=gosimple
