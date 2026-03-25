@@ -1,5 +1,4 @@
-version: "2"
-
+version: 2
 linters:
   enable:
     - errcheck
@@ -13,7 +12,10 @@ linters:
     - prealloc
     - unconvert
     - unparam
-
+    - whitespace
+linters-settings:
+  gofumpt:
+    extra-rules: true
 issues:
   max-issues-per-linter: 0
   max-same-issues: 0
