@@ -1,0 +1,33 @@
+# Datadog Agent Configuration
+# Place in /etc/datadog-agent/conf.d/logs.d/phenotype.yaml
+
+logs:
+  - type: file
+    path: /var/log/phenotype/*.log
+    service: phenotype-go-kit
+    source: go
+    log_processing_rules:
+      - type: include_pattern
+        pattern: '^\{'
+      - type: exclude_pattern
+        pattern: 'health_check'
+
+  - type: file
+    path: /var/log/phenotype/access.log
+    service: phenotype-http
+    source: go
+    log_processing_rules:
+      - type: multi_line
+        pattern: '^\d{4}-\d{2}-\d{2}'
+        name: new_log_entry
+
+# APM Configuration
+# apm_config:
+#   enabled: true
+#   env: production
+#   service_name: phenotype-go-kit
+
+# Metrics Configuration
+# metrics:
+#   - pattern: "phenotype.*"
+#     type: gauge
