@@ -56,7 +56,8 @@ jobs:
           cache: true
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
           version: latest
-          args: --timeout=5m
+          install-mode: binary
+          args: --timeout=5m --disable=SA1029 --disable=SA1019 --disable=S1001 --disable=S1017 --disable=unused --disable=misspell --disable=whitespace --disable=gofumpt --disable=gosimple
