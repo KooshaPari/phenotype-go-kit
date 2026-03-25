@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/phenotype/phenotype-go-kit/contracts/ports/inbound"
-	"github.com/phenotype/phenotype-go-kit/contracts/ports/outbound"
-)
+github.com/KooshaPari/phenotype-go-kit/contracts/ports/inbound
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 
 // mockCache implements outbound.CacheJSONPort for testing.
 // Following Law of Demeter - only exposes needed operations.
