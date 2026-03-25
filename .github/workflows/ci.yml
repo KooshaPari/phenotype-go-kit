@@ -60,4 +60,4 @@ jobs:
         with:
           version: latest
           install-mode: binary
-          args: --timeout=5m --disable=SA1029 --disable=SA1019 --disable=S1001 --disable=S1017 --disable=unused --disable=misspell --disable=whitespace --disable=gofumpt --disable=gosimple
+          args: --timeout=5m
