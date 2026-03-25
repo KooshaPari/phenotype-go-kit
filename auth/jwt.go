@@ -308,7 +308,7 @@ func (m *APIKeyManager) RevokeKey(keyID string) error {
 
 func generateID() string {
 	bytes := make([]byte, 16)
-	rand.Read(bytes)
+	_, _ = rand.Read(bytes)
 	return fmt.Sprintf("%x", bytes)
 }
 
