@@ -24,10 +24,10 @@ var _ Provider = (*OpenAIProvider)(nil)
 // NewOpenAIProvider creates a new OpenAI embeddings provider.
 func NewOpenAIProvider(opts ...Option) *OpenAIProvider {
 	cfg := Config{
-		BaseURL:   "https://api.openai.com/v1",
-		Model:     "text-embedding-3-small",
+		BaseURL:    "https://api.openai.com/v1",
+		Model:      "text-embedding-3-small",
 		Dimensions: 1536,
-		Timeout:   30 * time.Second,
+		Timeout:    30 * time.Second,
 	}
 
 	for _, opt := range opts {
@@ -85,8 +85,8 @@ type EmbedResponse struct {
 		Embedding []float32 `json:"embedding"`
 		Index     int       `json:"index"`
 	} `json:"data"`
-	Model  string `json:"model"`
-	Usage  struct {
+	Model string `json:"model"`
+	Usage struct {
 		PromptTokens     int `json:"prompt_tokens"`
 		CompletionTokens int `json:"completion_tokens"`
 		TotalTokens      int `json:"total_tokens"`

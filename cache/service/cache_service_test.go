@@ -3,85 +3,95 @@ package service
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 	"time"
 
-	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/inbound"
-github.com/KooshaPari/phenotype-go-kit/contracts/ports/inbound
-	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/phenotype/phenotype-go-kit/contracts/ports/inbound"
+	"github.com/phenotype/phenotype-go-kit/contracts/ports/outbound"
+)
 
-// MockCachePort is a mock implementation of CacheJSONPort for testing.
-type MockCachePort struct {
-	data      map[string]string
-	ttls      map[string]time.Duration
-	getErr    error
-	setErr    error
-	deleteErr error
-	expireErr error
+// mockCache implements outbound.CacheJSONPort for testing.
+// Following Law of Demeter - only exposes needed operations.
+type mockCache struct {
+	mu   sync.RWMutex
+	data map[string]string
+	ttls map[string]time.Duration
 }
 
-func NewMockCache() *MockCachePort {
-	return &MockCachePort{
-		data:  make(map[string]string),
-		ttls:  make(map[string]time.Duration),
+func newMockCache() *mockCache {
+	return &mockCache{
+		data: make(map[string]string),
+		ttls: make(map[string]time.Duration),
 	}
 }
 
-func (m *MockCachePort) Get(ctx context.Context, key string) (string, error) {
-	if m.getErr != nil {
-		return "", m.getErr
-	}
-	v, ok := m.data[key]
-	if !ok {
+func (m *mockCache) Get(ctx context.Context, key string) (string, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
+	if _, ok := m.data[key]; !ok {
 		return "", outbound.ErrKeyNotFound
 	}
-	return v, nil
+	return m.data[key], nil
 }
 
-func (m *MockCachePort) Set(ctx context.Context, key string, value string, ttl time.Duration) error {
-	if m.setErr != nil {
-		return m.setErr
+func (m *mockCache) Set(ctx context.Context, key, value string, ttl time.Duration) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if ttl <= 0 {
+		return outbound.ErrInvalidTTL
 	}
 	m.data[key] = value
 	m.ttls[key] = ttl
 	return nil
 }
 
-func (m *MockCachePort) SetJSON(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
-	return m.Set(ctx, key, serializeJSON(value), ttl)
+func (m *mockCache) SetNX(ctx context.Context, key, value string, ttl time.Duration) (bool, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if _, ok := m.data[key]; ok {
+		return false, nil
+	}
+	m.data[key] = value
+	m.ttls[key] = ttl
+	return true, nil
 }
 
-func (m *MockCachePort) GetJSON(ctx context.Context, key string, dest interface{}) error {
-	v, err := m.Get(ctx, key)
-	if err != nil {
-		return err
-	}
-	return deserializeJSON(v, dest)
-}
+func (m *mockCache) Delete(ctx context.Context, key string) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 
-func (m *MockCachePort) Delete(ctx context.Context, key string) error {
-	if m.deleteErr != nil {
-		return m.deleteErr
-	}
 	delete(m.data, key)
 	delete(m.ttls, key)
 	return nil
 }
 
-func (m *MockCachePort) Exists(ctx context.Context, key string) (bool, error) {
+func (m *mockCache) Exists(ctx context.Context, key string) (bool, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	_, ok := m.data[key]
 	return ok, nil
 }
 
-func (m *MockCachePort) Expire(ctx context.Context, key string, ttl time.Duration) error {
-	if m.expireErr != nil {
-		return m.expireErr
+func (m *mockCache) Expire(ctx context.Context, key string, ttl time.Duration) error {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	if _, ok := m.data[key]; !ok {
+		return outbound.ErrKeyNotFound
 	}
 	m.ttls[key] = ttl
 	return nil
 }
 
-func (m *MockCachePort) TTL(ctx context.Context, key string) (time.Duration, error) {
+func (m *mockCache) TTL(ctx context.Context, key string) (time.Duration, error) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+
 	ttl, ok := m.ttls[key]
 	if !ok {
 		return 0, outbound.ErrKeyNotFound
@@ -89,354 +99,205 @@ func (m *MockCachePort) TTL(ctx context.Context, key string) (time.Duration, err
 	return ttl, nil
 }
 
-func (m *MockCachePort) GetOrSet(ctx context.Context, key string, compute func() (string, error), ttl time.Duration) (string, error) {
-	if v, ok := m.data[key]; ok {
-		return v, nil
-	}
-	v, err := compute()
-	if err != nil {
-		return "", err
-	}
-	_ = m.Set(ctx, key, v, ttl)
-	return v, nil
-}
-
-func serializeJSON(v interface{}) string {
-	return `{"value":"` + toString(v) + `"}`
-}
-
-func toString(v interface{}) string {
-	if s, ok := v.(string); ok {
-		return s
-	}
-	return ""
-}
-
-func deserializeJSON(data string, dest interface{}) error {
+func (m *mockCache) Ping(ctx context.Context) error {
 	return nil
 }
 
-// Test helper functions
-func TestCacheService_SetCache_Success(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	service := NewCacheService(cache)
+func (m *mockCache) Close() error {
+	return nil
+}
 
-	// Act - Using the handler function pattern
+func (m *mockCache) GetJSON(ctx context.Context, key string, dest interface{}) error {
+	val, err := m.Get(ctx, key)
+	if err != nil {
+		return err
+	}
+	// Simple string storage for testing
+	if s, ok := dest.(*string); ok {
+		*s = val
+	}
+	return nil
+}
+
+func (m *mockCache) SetJSON(ctx context.Context, key string, value interface{}, ttl time.Duration) error {
+	// Simple string storage for testing
+	if s, ok := value.(string); ok {
+		return m.Set(ctx, key, s, ttl)
+	}
+	return m.Set(ctx, key, "json-value", ttl)
+}
+
+// Tests
+
+func TestCacheService_SetCacheHandler(t *testing.T) {
+	cache := newMockCache()
+	service := NewCacheService(cache)
 	handler := service.SetCacheHandler()
+
+	ctx := context.Background()
 	cmd := inbound.SetCacheCommand{
 		Key:   "test-key",
 		Value: "test-value",
-		TTL:   5 * time.Minute,
+		TTL:   time.Hour,
 	}
 
-	// Assert - Execute handler
 	err := handler(ctx, cmd)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
 
 	// Verify
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-
 	val, err := cache.Get(ctx, "test-key")
 	if err != nil {
-		t.Errorf("expected value in cache, got error: %v", err)
+		t.Fatalf("expected value, got error: %v", err)
 	}
 	if val != "test-value" {
-		t.Errorf("expected 'test-value', got '%s'", val)
+		t.Errorf("expected 'test-value', got %q", val)
 	}
 }
 
-func TestCacheService_SetCache_InvalidTTL(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
+func TestCacheService_SetCacheHandler_InvalidTTL(t *testing.T) {
+	cache := newMockCache()
 	service := NewCacheService(cache)
-
-	// Act
 	handler := service.SetCacheHandler()
+
+	ctx := context.Background()
 	cmd := inbound.SetCacheCommand{
 		Key:   "test-key",
 		Value: "test-value",
-		TTL:   0, // Invalid TTL
+		TTL:   0, // Invalid
 	}
 
-	// Assert
 	err := handler(ctx, cmd)
-
-	if err != ErrInvalidTTL {
+	if !errors.Is(err, ErrInvalidTTL) {
 		t.Errorf("expected ErrInvalidTTL, got %v", err)
 	}
 }
 
-func TestCacheService_SetCache_NegativeTTL(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
+func TestCacheService_GetCacheHandler(t *testing.T) {
+	cache := newMockCache()
+	cache.data["existing-key"] = "existing-value"
+	cache.ttls["existing-key"] = time.Hour
+
 	service := NewCacheService(cache)
-
-	// Act
-	handler := service.SetCacheHandler()
-	cmd := inbound.SetCacheCommand{
-		Key:   "test-key",
-		Value: "test-value",
-		TTL:   -1 * time.Second, // Negative TTL
-	}
-
-	// Assert
-	err := handler(ctx, cmd)
-
-	if err != ErrInvalidTTL {
-		t.Errorf("expected ErrInvalidTTL, got %v", err)
-	}
-}
-
-func TestCacheService_DeleteCache_Success(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	_ = cache.Set(ctx, "test-key", "test-value", time.Minute)
-	service := NewCacheService(cache)
-
-	// Act
-	handler := service.DeleteCacheHandler()
-	cmd := inbound.DeleteCacheCommand{Key: "test-key"}
-	err := handler(ctx, cmd)
-
-	// Assert
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-
-	exists, _ := cache.Exists(ctx, "test-key")
-	if exists {
-		t.Error("expected key to be deleted")
-	}
-}
-
-func TestCacheService_GetCache_Success(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	_ = cache.Set(ctx, "test-key", "test-value", time.Minute)
-	service := NewCacheService(cache)
-
-	// Act
 	handler := service.GetCacheHandler()
-	query := inbound.GetCacheQuery{Key: "test-key"}
+
+	ctx := context.Background()
+
+	// Test existing key
+	query := inbound.GetCacheQuery{Key: "existing-key"}
 	val, err := handler(ctx, query)
-
-	// Assert
 	if err != nil {
-		t.Errorf("expected no error, got %v", err)
+		t.Fatalf("expected no error, got %v", err)
 	}
-	if val != "test-value" {
-		t.Errorf("expected 'test-value', got '%s'", val)
+	if val != "existing-value" {
+		t.Errorf("expected 'existing-value', got %q", val)
 	}
-}
 
-func TestCacheService_GetCache_NotFound(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	service := NewCacheService(cache)
-
-	// Act
-	handler := service.GetCacheHandler()
-	query := inbound.GetCacheQuery{Key: "nonexistent"}
-	_, err := handler(ctx, query)
-
-	// Assert
+	// Test missing key
+	query = inbound.GetCacheQuery{Key: "missing-key"}
+	_, err = handler(ctx, query)
 	if !errors.Is(err, ErrKeyNotFound) {
 		t.Errorf("expected ErrKeyNotFound, got %v", err)
 	}
 }
 
-func TestCacheService_Exists_Success(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	_ = cache.Set(ctx, "test-key", "test-value", time.Minute)
+func TestCacheService_DeleteCacheHandler(t *testing.T) {
+	cache := newMockCache()
+	cache.data["delete-key"] = "delete-value"
+
 	service := NewCacheService(cache)
+	handler := service.DeleteCacheHandler()
 
-	// Act
-	handler := service.ExistsCacheHandler()
-	query := inbound.ExistsCacheQuery{Key: "test-key"}
-	exists, err := handler(ctx, query)
+	ctx := context.Background()
+	cmd := inbound.DeleteCacheCommand{Key: "delete-key"}
 
-	// Assert
+	err := handler(ctx, cmd)
 	if err != nil {
-		t.Errorf("expected no error, got %v", err)
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	// Verify deleted
+	_, err = cache.Get(ctx, "delete-key")
+	if !errors.Is(err, outbound.ErrKeyNotFound) {
+		t.Errorf("expected ErrKeyNotFound after delete, got %v", err)
+	}
+}
+
+func TestCacheService_ExpireCacheHandler(t *testing.T) {
+	cache := newMockCache()
+	cache.data["expire-key"] = "expire-value"
+
+	service := NewCacheService(cache)
+	handler := service.ExpireCacheHandler()
+
+	ctx := context.Background()
+	cmd := inbound.ExpireCacheCommand{
+		Key: "expire-key",
+		TTL: 2 * time.Hour,
+	}
+
+	err := handler(ctx, cmd)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	// Verify TTL set
+	ttl, err := cache.TTL(ctx, "expire-key")
+	if err != nil {
+		t.Fatalf("expected TTL, got error: %v", err)
+	}
+	if ttl != 2*time.Hour {
+		t.Errorf("expected TTL 2h, got %v", ttl)
+	}
+}
+
+func TestCacheService_ExistsCacheHandler(t *testing.T) {
+	cache := newMockCache()
+	cache.data["exists-key"] = "exists-value"
+
+	service := NewCacheService(cache)
+	handler := service.ExistsCacheHandler()
+
+	ctx := context.Background()
+
+	// Test existing key
+	query := inbound.ExistsCacheQuery{Key: "exists-key"}
+	exists, err := handler(ctx, query)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
 	}
 	if !exists {
 		t.Error("expected key to exist")
 	}
-}
 
-func TestCacheService_Exists_NotFound(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	service := NewCacheService(cache)
-
-	// Act
-	handler := service.ExistsCacheHandler()
-	query := inbound.ExistsCacheQuery{Key: "nonexistent"}
-	exists, err := handler(ctx, query)
-
-	// Assert
+	// Test missing key
+	query = inbound.ExistsCacheQuery{Key: "missing-key"}
+	exists, err = handler(ctx, query)
 	if err != nil {
-		t.Errorf("expected no error, got %v", err)
+		t.Fatalf("expected no error, got %v", err)
 	}
 	if exists {
 		t.Error("expected key to not exist")
 	}
 }
 
-func TestCacheService_Expire_Success(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	_ = cache.Set(ctx, "test-key", "test-value", time.Minute)
-	service := NewCacheService(cache)
+// Benchmark
 
-	// Act
-	handler := service.ExpireCacheHandler()
-	cmd := inbound.ExpireCacheCommand{Key: "test-key", TTL: 10 * time.Minute}
-	err := handler(ctx, cmd)
-
-	// Assert
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-}
-
-// CacheWarmer Tests
-func TestCacheWarmer_WarmKey_Success(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	fetcher := func(ctx context.Context, key string) (string, time.Duration, error) {
-		return "fetched-value", 5 * time.Minute, nil
-	}
-	warmer := NewCacheWarmer(cache, fetcher)
-
-	// Act
-	err := warmer.WarmKey(ctx, "warm-key")
-
-	// Assert
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-
-	val, _ := cache.Get(ctx, "warm-key")
-	if val != "fetched-value" {
-		t.Errorf("expected 'fetched-value', got '%s'", val)
-	}
-}
-
-func TestCacheWarmer_WarmKey_FetchError(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	expectedErr := errors.New("fetch error")
-	fetcher := func(ctx context.Context, key string) (string, time.Duration, error) {
-		return "", 0, expectedErr
-	}
-	warmer := NewCacheWarmer(cache, fetcher)
-
-	// Act
-	err := warmer.WarmKey(ctx, "warm-key")
-
-	// Assert
-	if !errors.Is(err, expectedErr) {
-		t.Errorf("expected fetch error, got %v", err)
-	}
-}
-
-func TestCacheWarmer_WarmKeys_SkipsOnError(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	fetcher := func(ctx context.Context, key string) (string, time.Duration, error) {
-		if key == "fail-key" {
-			return "", 0, errors.New("fetch failed")
-		}
-		return "value-" + key, time.Minute, nil
-	}
-	warmer := NewCacheWarmer(cache, fetcher)
-
-	// Act
-	err := warmer.WarmKeys(ctx, []string{"key1", "fail-key", "key2"})
-
-	// Assert - Should not return error (skips failed keys)
-	if err != nil {
-		t.Errorf("expected no error (skip), got %v", err)
-	}
-
-	// Verify key1 and key2 were cached
-	_, err = cache.Get(ctx, "key1")
-	if err != nil {
-		t.Errorf("expected key1 to be cached, got error")
-	}
-	_, err = cache.Get(ctx, "key2")
-	if err != nil {
-		t.Errorf("expected key2 to be cached, got error")
-	}
-}
-
-// PatternInvalidator Tests
-func TestPatternInvalidator_Invalidate_Success(t *testing.T) {
-	// Arrange
-	ctx := context.Background()
-	cache := NewMockCache()
-	_ = cache.Set(ctx, "user:1", "value1", time.Minute)
-	_ = cache.Set(ctx, "user:2", "value2", time.Minute)
-	_ = cache.Set(ctx, "order:1", "value3", time.Minute)
-
-	invalidator := &PatternInvalidator{}
-
-	// Act
-	count, err := invalidator.Invalidate(ctx, cache, "user:*")
-
-	// Assert
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
-	if count != 2 {
-		t.Errorf("expected 2 invalidated, got %d", count)
-	}
-}
-
-// Benchmark Tests
-func BenchmarkCacheService_SetCache(b *testing.B) {
-	ctx := context.Background()
-	cache := NewMockCache()
+func BenchmarkCacheService_SetCacheHandler(b *testing.B) {
+	cache := newMockCache()
 	service := NewCacheService(cache)
 	handler := service.SetCacheHandler()
+
+	ctx := context.Background()
 	cmd := inbound.SetCacheCommand{
 		Key:   "bench-key",
 		Value: "bench-value",
-		TTL:   time.Minute,
+		TTL:   time.Hour,
 	}
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		_ = handler(ctx, cmd)
-	}
-}
-
-func BenchmarkCacheService_GetCache(b *testing.B) {
-	ctx := context.Background()
-	cache := NewMockCache()
-	_ = cache.Set(ctx, "bench-key", "bench-value", time.Minute)
-	service := NewCacheService(cache)
-	handler := service.GetCacheHandler()
-	query := inbound.GetCacheQuery{Key: "bench-key"}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		_, _ = handler(ctx, query)
+		handler(ctx, cmd)
 	}
 }

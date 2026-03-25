@@ -12,8 +12,8 @@
 //
 // # Usage
 //
-//   provider := embeddings.NewOpenAIProvider(apiKey)
-//   embeddings, err := provider.Embed(ctx, "Hello, world!")
+//	provider := embeddings.NewOpenAIProvider(apiKey)
+//	embeddings, err := provider.Embed(ctx, "Hello, world!")
 //
 // # Law of Demeter (LoD)
 //

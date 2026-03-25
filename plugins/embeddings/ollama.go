@@ -29,10 +29,10 @@ type OllamaConfig struct {
 // NewOllamaProvider creates a new Ollama embeddings provider.
 func NewOllamaProvider(opts ...Option) *OllamaProvider {
 	cfg := Config{
-		BaseURL:   "http://localhost:11434",
-		Model:     "nomic-embed-text",
+		BaseURL:    "http://localhost:11434",
+		Model:      "nomic-embed-text",
 		Dimensions: 768,
-		Timeout:   60 * time.Second,
+		Timeout:    60 * time.Second,
 	}
 
 	for _, opt := range opts {
@@ -78,8 +78,8 @@ func (p *OllamaProvider) Dimensions() int {
 
 // OllamaEmbedRequest represents the Ollama embeddings API request.
 type OllamaEmbedRequest struct {
-	Model    string `json:"model"`
-	Prompt   string `json:"prompt"`
+	Model     string `json:"model"`
+	Prompt    string `json:"prompt"`
 	KeepAlive string `json:"keep_alive,omitempty"`
 }
 
