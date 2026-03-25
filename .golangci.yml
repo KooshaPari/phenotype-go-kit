@@ -2,23 +2,12 @@ version: "2"
 
 linters:
   enable:
-    - errcheck
     - govet
-    - ineffassign
     - staticcheck
-    - unused
-    - misspell
-    - noctx
-    - bodyclose
-    - prealloc
-    - unconvert
-    - unparam
-    - whitespace
 
 linters-settings:
-  gofumpt:
-    extra-rules: true
+  govet:
+    enable-all: true
 
 issues:
-  max-issues-per-linter: 0
-  max-same-issues: 0
+  exclude-use-default: false
