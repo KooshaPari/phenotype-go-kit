@@ -1,3 +1,6 @@
+// Copyright (c) 2026 Phenotype Enterprise. All rights reserved.
+// Licensed under the Phenotype Standard License.
+
 package alerting
 
 import (
