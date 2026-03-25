@@ -73,8 +73,8 @@ func (m *Manifest) Validate() error {
 
 // ManifestError represents a manifest validation error.
 type ManifestError struct {
-	Field  string
-	Index  int
+	Field   string
+	Index   int
 	Message string
 }
 
