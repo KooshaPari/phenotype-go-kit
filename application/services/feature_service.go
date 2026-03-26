@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"phenotype-go-kit/domain/entities"
-	"phenotype-go-kit/domain/ports"
+	"github.com/KooshaPari/phenotype-go-kit/domain/entities"
+	"github.com/KooshaPari/phenotype-go-kit/domain/ports"
 )
 
 // FeatureService handles feature-related use cases.
@@ -18,12 +18,12 @@ import (
 // - Transaction boundaries
 // - Cross-cutting concerns (logging, observability)
 type FeatureService struct {
-	featureRepo    ports.FeatureRepositoryPort
-	wpRepo         ports.WorkPackageRepositoryPort
-	cache          ports.CachePort
-	eventBus       ports.EventBusPort
-	audit          ports.AuditPort
-	observability  ports.ObservabilityPort
+	featureRepo   ports.FeatureRepositoryPort
+	wpRepo        ports.WorkPackageRepositoryPort
+	cache         ports.CachePort
+	eventBus      ports.EventBusPort
+	audit         ports.AuditPort
+	observability ports.ObservabilityPort
 }
 
 // NewFeatureService creates a new FeatureService.
@@ -37,12 +37,12 @@ func NewFeatureService(
 	observability ports.ObservabilityPort,
 ) *FeatureService {
 	return &FeatureService{
-		featureRepo:    featureRepo,
-		wpRepo:         wpRepo,
-		cache:          cache,
-		eventBus:       eventBus,
-		audit:          audit,
-		observability:  observability,
+		featureRepo:   featureRepo,
+		wpRepo:        wpRepo,
+		cache:         cache,
+		eventBus:      eventBus,
+		audit:         audit,
+		observability: observability,
 	}
 }
 
@@ -87,13 +87,13 @@ func (s *FeatureService) CreateFeature(ctx context.Context, input CreateFeatureI
 		ID:             string(entities.NewAggregateID("audit")),
 		FeatureID:      saved.ID,
 		TransitionType: "created",
-		FromStatus:    "",
-		ToStatus:      string(saved.Status),
-		EvidenceRefs:  []string{},
-		PreviousHash:  "",
-		Hash:         "",
-		Timestamp:    time.Now(),
-		Actor:       input.CreatedBy,
+		FromStatus:     "",
+		ToStatus:       string(saved.Status),
+		EvidenceRefs:   []string{},
+		PreviousHash:   "",
+		Hash:           "",
+		Timestamp:      time.Now(),
+		Actor:          input.CreatedBy,
 	}); err != nil {
 		s.observability.RecordError(ctx, "CreateFeature.audit", err)
 	}
@@ -152,10 +152,10 @@ func (s *FeatureService) TransitionFeature(ctx context.Context, featureID string
 		ID:             string(entities.NewAggregateID("audit")),
 		FeatureID:      featureID,
 		TransitionType: "transitioned",
-		FromStatus:    string(fromStatus),
-		ToStatus:      string(targetStatus),
-		Timestamp:     time.Now(),
-		Actor:         actor,
+		FromStatus:     string(fromStatus),
+		ToStatus:       string(targetStatus),
+		Timestamp:      time.Now(),
+		Actor:          actor,
 		PreviousHash:   previousHash,
 	}
 	auditEntry.Hash = entities.ComputeHash(auditEntry)

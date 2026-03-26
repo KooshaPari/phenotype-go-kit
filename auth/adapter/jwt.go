@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/phenotype/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 var (
@@ -65,12 +65,12 @@ func NewJWTValidatorAdapter(cfg Config) *JWTValidatorAdapter {
 }
 
 // Manifest returns the adapter manifest.
-func (a *JWTValidatorAdapter) Manifest() *outbound.Manifest {
-	return &outbound.Manifest{
+func (a *JWTValidatorAdapter) Manifest() *outbound.AdapterManifest {
+	return &outbound.AdapterManifest{
 		Name:        "jwt-auth-adapter",
 		Version:     "1.0.0",
 		Description: "JWT authentication adapter",
-		Provides:    []string{"auth-port"},
+		Provides:    []string{"auth-port", "token-generator", "token-validator"},
 	}
 }
 

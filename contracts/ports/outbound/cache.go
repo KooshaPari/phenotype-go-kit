@@ -23,7 +23,7 @@ var (
 //
 // # Implementations
 //
-//   - Redis: github.com/phenotype/phenotype-go-kit/cache/adapter (RedisCacheAdapter)
+//   - Redis: github.com/KooshaPari/phenotype-go-kit/cache/adapter (RedisCacheAdapter)
 type CachePort interface {
 	// Get retrieves a value by key.
 	// Returns ErrKeyNotFound if key does not exist.

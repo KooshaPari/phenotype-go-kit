@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"phenotype-go-kit/contracts/ports/outbound"
+	github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 // PostgresAdapter implements outbound.QueryExecutor for PostgreSQL.

@@ -7,7 +7,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	"phenotype-go-kit/contracts/ports/outbound"
+	github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 // SQLiteAdapter implements outbound.QueryExecutor for SQLite.

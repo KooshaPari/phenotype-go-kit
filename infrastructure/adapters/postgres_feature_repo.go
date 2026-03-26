@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"phenotype-go-kit/domain/entities"
-	"phenotype-go-kit/domain/ports"
+	github.com/KooshaPari/phenotype-go-kit/domain/entities"
+	github.com/KooshaPari/phenotype-go-kit/domain/ports"
 )
 
 // PostgresFeatureRepository implements FeatureRepositoryPort using PostgreSQL.

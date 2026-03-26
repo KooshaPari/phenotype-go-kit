@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/phenotype/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 	"github.com/redis/go-redis/v9"
 )
 
