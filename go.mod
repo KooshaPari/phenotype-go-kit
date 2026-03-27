@@ -11,6 +11,7 @@ require (
 	github.com/coder/quartz v0.1.2
 	github.com/go-chi/chi/v5 v5.2.5
 	github.com/golang-jwt/jwt/v5 v5.3.1
+	github.com/mattn/go-sqlite3 v1.14.37
 	github.com/prometheus/client_golang v1.22.0
 	github.com/redis/go-redis/v9 v9.18.0
 	github.com/spf13/viper v1.21.0

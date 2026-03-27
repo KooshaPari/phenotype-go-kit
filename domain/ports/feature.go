@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	github.com/KooshaPari/phenotype-go-kit/domain/entities"
+	"github.com/KooshaPari/phenotype-go-kit/domain/entities"
 )
 
 // FeatureRepositoryPort defines the interface for feature persistence.

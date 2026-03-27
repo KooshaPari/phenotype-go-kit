@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+
+	"github.com/KooshaPari/phenotype-go-kit/contracts/plugins"
 )
 
 // OllamaProvider implements Provider for Ollama API.
@@ -49,16 +51,7 @@ func NewOllamaProvider(opts ...Option) *OllamaProvider {
 
 // Manifest returns the plugin manifest.
 func (p *OllamaProvider) Manifest() *plugins.Manifest {
-	return &plugins.Manifest{
-		Name:        "ollama-embeddings",
-		Version:     "1.0.0",
-		Description: "Ollama local embeddings provider",
-		Author:      "Phenotype Team",
-		License:     "Apache-2.0",
-		Tags:        []string{"embeddings", "ai", "ollama", "local"},
-		Requires:    map[string]string{},
-		Provides:    []string{"embeddings-provider"},
-	}
+	return plugins.DefaultManifest()
 }
 
 // Name returns the provider name.

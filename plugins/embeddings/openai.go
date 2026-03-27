@@ -43,16 +43,7 @@ func NewOpenAIProvider(opts ...Option) *OpenAIProvider {
 
 // Manifest returns the plugin manifest.
 func (p *OpenAIProvider) Manifest() *plugins.Manifest {
-	return &plugins.Manifest{
-		Name:        "openai-embeddings",
-		Version:     "1.0.0",
-		Description: "OpenAI embeddings provider using text-embedding-3 models",
-		Author:      "Phenotype Team",
-		License:     "Apache-2.0",
-		Tags:        []string{"embeddings", "ai", "openai"},
-		Requires:    map[string]string{},
-		Provides:    []string{"embeddings-provider"},
-	}
+	return plugins.DefaultManifest()
 }
 
 // Name returns the provider name.

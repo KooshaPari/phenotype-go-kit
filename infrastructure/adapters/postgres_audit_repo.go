@@ -6,8 +6,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	github.com/KooshaPari/phenotype-go-kit/domain/entities"
-	github.com/KooshaPari/phenotype-go-kit/domain/ports"
+	"github.com/KooshaPari/phenotype-go-kit/domain/entities"
+	"github.com/KooshaPari/phenotype-go-kit/domain/ports"
 )
 
 // PostgresAuditRepository implements AuditPort using PostgreSQL.
