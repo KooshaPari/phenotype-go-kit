@@ -1,557 +1,109 @@
-# phenotype-go-kit — Product Requirements Document
+# Product Requirements Document — phenotype-go-kit
 
-## Executive Summary
+## Overview
 
-**phenotype-go-kit** is a focused, minimal Go infrastructure toolkit extracted from the Phenotype ecosystem. It provides four independent, composable packages for common infrastructure concerns: context-scoped logging, fixed-capacity circular buffers, polling with exponential backoff, and thread-safe generic registries.
-
-### Product Vision
-
-Enable Go developers to build robust, observable, and composable microservices and agents by providing small, focused, well-tested packages that follow SOLID principles and composable architecture patterns. Each package has zero cross-package dependencies, allowing developers to use only what they need without bloat.
+phenotype-go-kit is a Go module (`github.com/KooshaPari/phenotype-go-kit`) providing reusable, production-grade infrastructure packages extracted from the Phenotype ecosystem. Each package is independently importable with minimal cross-package dependencies. The module targets Go 1.25+ services that follow Hexagonal Architecture with SOLID, GRASP, and Law of Demeter principles.
 
 ---
 
-## User Personas & Use Cases
+## Epics and User Stories
 
-### Persona 1: Distributed Service Developer
-- **Goal**: Build multi-service systems where context-aware logging, service discovery, and resilient polling are critical
-- **Use Case**: Inject slog.Logger into context; use registry for service discovery; poll for health checks with backoff
-- **Key Needs**: Type-safe, testable, minimal dependencies
+### E1 — Authentication and Authorization
 
-### Persona 2: Systems Engineer
-- **Goal**: Instrument observability with context-scoped logging across call chains
-- **Use Case**: Retrieve logger from context in any downstream function; logs include request context and traces
-- **Key Needs**: Zero allocation overhead, context-first design, slog integration
+**E1.1** As a service developer, I want JWT generation and validation with both HMAC-SHA256 and RSA-256 signing so I can choose the appropriate algorithm per deployment context.
 
-### Persona 3: Agent & AI Framework Developer
-- **Goal**: Build robust polling, state management, and service registration patterns for long-running agents
-- **Use Case**: Poll agent state with exponential backoff; use registry to track agent instances; buffer recent events
-- **Key Needs**: Configurable timeouts, testable with fake clocks, ref-counted lifecycle management
+**E1.2** As a service developer, I want an HTTP middleware that validates Bearer tokens and injects user identity (ID, email, roles) into request context so auth state is available to all downstream handlers without repetition.
+
+**E1.3** As a service developer, I want role-based access middleware (`RequireRole`) so I can protect individual endpoints with fine-grained permission checks.
+
+**E1.4** As a service developer, I want an API key manager (generate, hash for storage, validate, revoke) so services can support machine-to-machine authentication without user sessions.
+
+**E1.5** As a service developer, I want context helpers (`GetUserID`, `GetUserEmail`, `GetUserRoles`) so handler code can extract auth claims without type assertions against raw context keys.
 
 ---
 
-## Product Architecture
+### E2 — Observability
 
-### Four Independent Packages
+**E2.1** As a platform engineer, I want Prometheus metrics (HTTP request count, duration, response size; DB query duration and errors; job queue depth, processing time, retries) registered under the `phenotype` namespace so dashboards have a consistent label schema across all services.
 
-```
-github.com/KooshaPari/phenotype-go-kit/
+**E2.2** As a platform engineer, I want an HTTP middleware (`MetricsMiddleware`) that records per-request metrics automatically, excluding health endpoints, so instrumentation requires no per-handler code.
 
-├── logctx/        # Context-scoped slog.Logger injection
-├── ringbuffer/    # Generic fixed-capacity circular buffer
-├── waitfor/       # Polling with exponential backoff
-└── registry/      # Thread-safe generic key-value registry with ref counting
-```
+**E2.3** As a platform engineer, I want OpenTelemetry tracing initialized via a single call (`tracing.Init`) with OTLP/gRPC export, so services share a consistent trace propagation setup.
 
-**Design Principle**: Each package is independent with zero cross-dependencies. Developers can import only the packages they need.
+**E2.4** As a service developer, I want structured logging with `log/slog` including log rotation support and a gRPC interceptor for request logging so all log output is machine-parseable and consistent.
+
+**E2.5** As a platform engineer, I want a health check aggregator with liveness and readiness HTTP handlers that returns JSON status across all registered component checks, so Kubernetes probes work out of the box.
 
 ---
 
-## Package Specifications
+### E3 — Resilience Patterns
 
-### PKG-1: logctx — Context-Scoped Logging
+**E3.1** As a service developer, I want a circuit breaker with configurable failure threshold, success threshold, and timeout, and three states (Closed, Open, HalfOpen), so downstream failures stop cascading.
 
-**Purpose**: Inject and retrieve `*slog.Logger` from `context.Context` anywhere in the call chain.
+**E3.2** As a service developer, I want a retry utility with exponential backoff, configurable jitter, max attempts, and per-call deadline propagation, so transient errors are handled uniformly.
 
-#### Core Abstractions
+**E3.3** As a service developer, I want a token-bucket rate limiter keyed on API key, auth header, or IP, with block/unblock controls and HTTP middleware, so services can shed load without external dependencies.
 
-```
-Package: github.com/KooshaPari/phenotype-go-kit/logctx
-
-Functions:
-- WithLogger(ctx context.Context, logger *slog.Logger) context.Context
-  └─ Returns new context with logger attached
-  
-- From(ctx context.Context) *slog.Logger
-  └─ Retrieves logger; panics if missing (intentional: programmer error)
-```
-
-#### Design Rationale
-
-- **Panic on Missing Logger**: Missing logger is a programmer error, not a runtime concern. Fail loudly.
-- **No Wrapper**: Return `*slog.Logger` directly; leverage Go 1.21+ stdlib slog.
-- **Zero Overhead**: Context values are just pointers; no serialization or overhead.
-- **Thread-Safe**: slog.Logger is thread-safe; context.WithValue is thread-safe.
-
-#### User Stories
-
-**Story PKG-1.1: Inject Logger at Request Entry**
-```
-func handleRequest(ctx context.Context, w http.ResponseWriter, r *http.Request) {
-  logger := slog.Default().With("request_id", requestID)
-  ctx = logctx.WithLogger(ctx, logger)
-  
-  // Logger is now available to all downstream functions
-  processRequest(ctx)
-}
-```
-
-**Story PKG-1.2: Retrieve Logger Anywhere Downstream**
-```
-func processRequest(ctx context.Context) {
-  logger := logctx.From(ctx)
-  logger.Info("processing request")
-}
-```
-
-**Story PKG-1.3: Testing with Slog Handler Inspection**
-```
-func TestLogging(t *testing.T) {
-  var buf bytes.Buffer
-  handler := slog.NewTextHandler(&buf, nil)
-  logger := slog.New(handler)
-  
-  ctx := logctx.WithLogger(context.Background(), logger)
-  processRequest(ctx)
-  
-  assert.Contains(t, buf.String(), "processing request")
-}
-```
+**E3.4** As a service developer, I want a ring buffer with fixed capacity and thread safety so bounded in-memory queues can be built without generics complexity.
 
 ---
 
-### PKG-2: ringbuffer — Generic Fixed-Capacity Circular Buffer
+### E4 — Data Layer Abstractions
 
-**Purpose**: Store up to N items (most recent) and retrieve them in FIFO order, discarding oldest entries on overflow.
+**E4.1** As a service developer, I want a database connection pool abstraction, query builder utilities, and index helpers so services share consistent DB setup patterns.
 
-#### Core Abstractions
+**E4.2** As a service developer, I want a Redis cache adapter with TTL-based invalidation and a cache service layer so read-heavy services can cache without writing custom Redis wrappers.
 
-```
-Package: github.com/KooshaPari/phenotype-go-kit/ringbuffer
+**E4.3** As a service developer, I want an object storage abstraction supporting AWS S3 and Google Cloud Storage behind a unified interface so storage backend can be swapped without service-layer changes.
 
-Type: RingBuffer[T any]
-
-Methods:
-- New[T](capacity int) *RingBuffer[T]
-  └─ Create circular buffer with fixed capacity
-  
-- Push(item T)
-  └─ Add item; overwrite oldest if full
-  
-- GetAll() []T
-  └─ Return all items in FIFO order (oldest first)
-  
-- Len() int
-  └─ Current count
-  
-- Cap() int
-  └─ Maximum capacity
-```
-
-#### Implementation Details
-
-- **Generic**: Supports any type T
-- **Fixed Capacity**: Capacity set at creation; immutable
-- **Circular**: Uses modulo arithmetic to wrap around
-- **Thread-Safe**: Protected by sync.RWMutex for concurrent reads
-- **GetAll() Ordering**: Returns items in FIFO order (oldest first)
-
-#### User Stories
-
-**Story PKG-2.1: Recent Event Buffer**
-```
-rb := ringbuffer.New[Event](100)
-rb.Push(event1)
-rb.Push(event2)
-rb.Push(event3)
-
-// Later, retrieve recent events
-events := rb.GetAll()  // [event1, event2, event3]
-```
-
-**Story PKG-2.2: Circular Behavior on Overflow**
-```
-rb := ringbuffer.New[int](3)
-rb.Push(1)
-rb.Push(2)
-rb.Push(3)
-rb.Push(4)  // Overwrites 1
-
-items := rb.GetAll()  // [2, 3, 4]
-```
-
-**Story PKG-2.3: Agent State History**
-```
-type AgentState struct {
-  Timestamp time.Time
-  Status    string
-  Token     int
-}
-
-history := ringbuffer.New[AgentState](50)
-for event := range eventStream {
-  history.Push(AgentState{
-    Timestamp: event.At,
-    Status:    event.State,
-    Token:     event.Tokens,
-  })
-}
-
-// Inspect recent state for diagnostics
-recentStates := history.GetAll()
-```
+**E4.4** As a service developer, I want a secrets provider port and adapter so credentials are fetched from secret stores (not hardcoded), satisfying the 12-factor configuration principle.
 
 ---
 
-### PKG-3: waitfor — Polling with Exponential Backoff
+### E5 — Application Infrastructure
 
-**Purpose**: Poll a condition with exponential backoff, timeout, and testable clock support.
+**E5.1** As a service developer, I want a configuration loader backed by Viper (file, env, flags) so service config is consistent and overrideable for all environments.
 
-#### Core Abstractions
+**E5.2** As a service developer, I want an OAuth2 provider integration so services can delegate identity to external providers (Google, GitHub, etc.) with minimal boilerplate.
 
-```
-Package: github.com/KooshaPari/phenotype-go-kit/waitfor
+**E5.3** As a service developer, I want a CORS middleware configurable per-route so API servers can safely expose endpoints to browser clients.
 
-Type: WaitTimeout struct {
-  Timeout     time.Duration
-  MinInterval time.Duration  // Base interval (e.g., 50ms)
-  MaxInterval time.Duration  // Cap on exponential growth
-  InitialWait bool           // Check immediately or wait first
-}
+**E5.4** As a service developer, I want an event bus (local, in-process) for publishing and subscribing to domain events, so bounded contexts communicate without direct coupling.
 
-Functions:
-- WaitFor(ctx context.Context, timeout WaitTimeout, 
-          condition func() (bool, error)) error
-  └─ Poll until condition true, timeout, or error
-  └─ Returns: ErrTimedOut or condition error
-  
-- After(clock quartz.Clock, duration time.Duration) <-chan time.Time
-  └─ Sleep helper; uses real clock if nil
-```
-
-#### Backoff Algorithm
-
-```
-Attempt 1: wait InitialWait ? MinInterval : 0
-Attempt 2: wait MinInterval * 2^1 (capped at MaxInterval)
-Attempt 3: wait MinInterval * 2^2 (capped at MaxInterval)
-...
-```
-
-#### Design Rationale
-
-- **quartz.Clock Integration**: Testable; allows fake time advancement in tests
-- **Configurable Intervals**: MinInterval, MaxInterval, InitialWait for flexibility
-- **Error Propagation**: If condition returns error, propagate immediately (don't retry)
-- **Timeout Semantics**: Context deadline + explicit timeout for fine-grained control
-
-#### User Stories
-
-**Story PKG-3.1: Poll for Resource Readiness**
-```
-err := waitfor.WaitFor(ctx, waitfor.WaitTimeout{
-  Timeout:     10 * time.Second,
-  MinInterval: 100 * time.Millisecond,
-  MaxInterval: 2 * time.Second,
-  InitialWait: false,  // Check immediately
-}, func() (bool, error) {
-  resp, err := http.Get("http://service:8080/health")
-  if err != nil {
-    return false, nil  // Network error; retry
-  }
-  return resp.StatusCode == 200, nil
-})
-
-if err == waitfor.ErrTimedOut {
-  log.Fatal("service never became healthy")
-}
-```
-
-**Story PKG-3.2: Testable Polling with Fake Clock**
-```
-func TestPolling(t *testing.T) {
-  clock := quartz.NewMock()  // Fake clock from github.com/coder/quartz
-  
-  err := waitfor.WaitFor(ctx, waitfor.WaitTimeout{
-    Timeout:     1 * time.Second,
-    MinInterval: 100 * time.Millisecond,
-    InitialWait: true,
-  }, func() (bool, error) {
-    return readyFlag, nil
-  })
-  
-  // Advance fake clock
-  clock.Advance(500 * time.Millisecond)
-  
-  // Test completes instantly (fake time)
-  assert.NoError(t, err)
-}
-```
-
-**Story PKG-3.3: Agent State Polling**
-```
-// Agent framework: poll for task completion
-err := waitfor.WaitFor(ctx, waitfor.WaitTimeout{
-  Timeout:     5 * time.Minute,
-  MinInterval: 50 * time.Millisecond,
-  MaxInterval: 5 * time.Second,
-  InitialWait: false,
-}, func() (bool, error) {
-  state, err := agent.GetState()
-  if err != nil {
-    return false, err  // Propagate error; don't retry
-  }
-  return state.Complete, nil
-})
-```
+**E5.5** As a service developer, I want a validation package so request DTOs can be validated with consistent error structures.
 
 ---
 
-### PKG-4: registry — Thread-Safe Generic Registry with Ref Counting
+### E6 — Hexagonal Architecture Contracts
 
-**Purpose**: Manage lifecycle of named entities with owner-scoped registration. Multiple owners can hold the same key; entry removed only when last owner unregisters.
+**E6.1** As an architect, I want port interfaces (inbound and outbound) defined in the `contracts/ports` package separate from implementations, so service cores depend only on abstractions.
 
-#### Core Abstractions
+**E6.2** As an architect, I want domain model types in `contracts/models` so services share canonical data structures without circular imports.
 
-```
-Package: github.com/KooshaPari/phenotype-go-kit/registry
-
-Type: Registry[K comparable, V any]
-
-Methods:
-- New[K, V]() *Registry[K, V]
-  └─ Create new registry
-  
-- Register(ownerID K, key K, value V)
-  └─ Register value under key by owner
-  └─ Increments ref count if key already exists
-  
-- Unregister(ownerID K)
-  └─ Remove all entries owned by ownerID
-  └─ Decrements ref count; removes entry if count == 0
-  
-- Get(key K) (V, bool)
-  └─ Retrieve value; ok=false if not found
-  
-- Count(key K) int
-  └─ Ref count for key
-  
-- List() map[K]V
-  └─ Snapshot of all live entries
-  
-- SetHook(hook Hook[K, V])
-  └─ Observe registration/unregistration events
-```
-
-#### Hook Interface
-
-```
-type Hook[K comparable, V any] interface {
-  OnRegister(ownerID K, key K, value V)
-  OnUnregister(ownerID K)
-}
-```
-
-#### Design Rationale
-
-- **Owner-Scoped Lifecycle**: Multiple owners can register same key; entry persists as long as any owner claims it
-- **Ref Counting**: Automatic cleanup when last owner unregisters
-- **Hook Support**: Observe all changes; useful for logging, metrics, side effects
-- **Snapshot Safety**: List() returns copy to avoid mutation issues
-- **Thread-Safe**: sync.RWMutex for concurrent access
-
-#### User Stories
-
-**Story PKG-4.1: Multi-Owner Service Registry**
-```
-reg := registry.New[string, ServiceInfo]()
-
-// Two agents register the same service (with different ports)
-reg.Register("agent-a", "api-svc", ServiceInfo{Port: 8080})
-reg.Register("agent-b", "api-svc", ServiceInfo{Port: 8081})
-
-// Service is active as long as either owner is active
-svc, ok := reg.Get("api-svc")  // (ServiceInfo{...}, true)
-count := reg.Count("api-svc")  // 2
-
-// Agent-A shuts down
-reg.Unregister("agent-a")
-count = reg.Count("api-svc")  // 1
-
-// Service still active (agent-b still owns it)
-svc, ok = reg.Get("api-svc")  // (ServiceInfo{...}, true)
-
-// Agent-B shuts down
-reg.Unregister("agent-b")
-count = reg.Count("api-svc")  // 0
-svc, ok = reg.Get("api-svc")  // (zero, false) — entry removed
-```
-
-**Story PKG-4.2: Observing Registry Changes**
-```
-type MyHook struct{}
-
-func (h *MyHook) OnRegister(ownerID string, key string, value ServiceInfo) {
-  log.Printf("service registered: %s by %s", key, ownerID)
-}
-
-func (h *MyHook) OnUnregister(ownerID string) {
-  log.Printf("owner unregistered: %s", ownerID)
-}
-
-reg := registry.New[string, ServiceInfo]()
-reg.SetHook(&MyHook{})
-```
-
-**Story PKG-4.3: Agent Lifecycle Management**
-```
-// Agents register their services on startup
-agentID := "agent-42"
-services := map[string]ServiceInfo{
-  "task-queue": ServiceInfo{Host: "localhost", Port: 5672},
-  "cache":      ServiceInfo{Host: "localhost", Port: 6379},
-}
-
-for name, info := range services {
-  reg.Register(agentID, name, info)
-}
-
-// On graceful shutdown, unregister all
-defer reg.Unregister(agentID)  // Removes all services owned by agent
-```
-
-**Story PKG-4.4: Snapshot and Inspection**
-```
-// Inspect all registered services
-allServices := reg.List()  // map[string]ServiceInfo
-for key, svc := range allServices {
-  fmt.Printf("Service %s: %s:%d\n", key, svc.Host, svc.Port)
-}
-
-// Count owners of a service
-refs := reg.Count("api-svc")
-fmt.Printf("Service api-svc has %d owner(s)\n", refs)
-```
+**E6.3** As an architect, I want a plugin system interface in `contracts/plugins` so runtime-loadable extensions conform to a known contract.
 
 ---
 
-## Technical Requirements
+## Acceptance Criteria
 
-### FR-PKG1-001: logctx Context Injection
-- **Shall**: Provide `WithLogger(ctx, logger)` and `From(ctx)` functions
-- **Shall**: Panic on `From()` if no logger in context (intentional failure)
-- **Shall**: Work with `log/slog` from Go 1.21+ stdlib
-- **Shall**: Support nested context chains (parent→child contexts)
-
-### FR-PKG1-002: logctx Type Safety
-- **Shall**: Return `*slog.Logger` directly (no wrapper type)
-- **Shall**: Use context.ContextKey private type to prevent collisions
-- **Shall**: Thread-safe (context.WithValue is thread-safe)
-
-### FR-PKG2-001: ringbuffer Generics
-- **Shall**: Support any type T via `[T any]` generics (Go 1.18+)
-- **Shall**: Fixed capacity set at creation; immutable
-- **Shall**: Circular buffer with modulo arithmetic
-- **Shall**: GetAll() returns copy to avoid mutation
-
-### FR-PKG2-002: ringbuffer Thread Safety
-- **Shall**: Protect with sync.RWMutex for concurrent access
-- **Shall**: Push() and GetAll() safe for concurrent reads/writes
-- **Shall**: No allocation beyond what's necessary
-
-### FR-PKG3-001: waitfor Polling
-- **Shall**: Support exponential backoff: MinInterval * 2^attempt (capped at MaxInterval)
-- **Shall**: Accept timeout, min/max intervals, InitialWait flag
-- **Shall**: Return ErrTimedOut or condition error
-- **Shall**: Handle context cancellation (context deadline)
-
-### FR-PKG3-002: waitfor Testability
-- **Shall**: Integrate with github.com/coder/quartz for testable clocks
-- **Shall**: After() function accepts quartz.Clock (nil → real clock)
-- **Shall**: Tests can advance fake clock and verify polling behavior
-
-### FR-PKG4-001: registry Generics
-- **Shall**: Support generic keys K comparable, values V any
-- **Shall**: Register(ownerID, key, value), Unregister(ownerID), Get(key), Count(key), List()
-- **Shall**: Ref counting: entry removed only when last owner unregisters
-- **Shall**: Thread-safe with sync.RWMutex
-
-### FR-PKG4-002: registry Hooks
-- **Shall**: Support Hook[K, V] interface with OnRegister() and OnUnregister() methods
-- **Shall**: Optional; if no hook, no observability overhead
-- **Shall**: Hooks called synchronously during Register/Unregister
-
-### FR-PKG4-003: registry Snapshots
-- **Shall**: List() returns map copy (no pointer sharing)
-- **Shall**: Safe for iteration without holding locks
-
-### FR-CROSS-001: Zero Cross-Package Dependencies
-- **Shall**: logctx independent of ringbuffer, waitfor, registry
-- **Shall**: ringbuffer independent of logctx, waitfor, registry
-- **Shall**: waitfor independent of other packages
-- **Shall**: registry independent of other packages
-- **Shall**: No circular imports
-
-### FR-CROSS-002: Testing
-- **Shall**: All packages have unit tests with >90% coverage
-- **Shall**: logctx tests verify panic on missing logger
-- **Shall**: ringbuffer tests verify overflow and FIFO ordering
-- **Shall**: waitfor tests use fake clocks (quartz) for deterministic timing
-- **Shall**: registry tests verify ref counting and hook invocation
-
-### FR-CROSS-003: Documentation
-- **Shall**: README.md with quick-start examples for each package
-- **Shall**: Godoc comments on all public types and functions
-- **Shall**: Example code files (example_test.go) demonstrating usage
-
-### FR-CROSS-004: Build & Quality
-- **Shall**: Go 1.22+ required (generics, slog)
-- **Shall**: `go test -race ./...` passes (race detector enabled)
-- **Shall**: `go vet ./...` clean (static analysis)
-- **Shall**: `gofumpt -l .` formatting check
-- **Shall**: `golangci-lint run` full lint suite
+| Epic | Criterion |
+|------|-----------|
+| E1 | `JWTValidator.GenerateTokenPair` returns HS256 or RS256 tokens depending on config; `ValidateAccessToken` rejects expired and misscoped tokens |
+| E1 | `APIKeyManager` stores only the hash, never the raw key; `ValidateKey` returns the stored metadata |
+| E2 | `NewMetrics()` registers all counters/histograms without panic; `MetricsMiddleware` skips `/health` and `/ready` |
+| E2 | `tracing.Init` exports spans to a configurable OTLP endpoint |
+| E3 | `Breaker.Execute` returns `ErrCircuitOpen` when the breaker is open; transitions to HalfOpen after timeout |
+| E3 | `retry.Do` respects `context.Done` and returns early on cancellation |
+| E3 | `RateLimiter.Allow` uses token bucket; blocked keys return false immediately |
+| E4 | Cache adapter reads from Redis; on miss returns the appropriate sentinel error |
+| E4 | Storage adapters (S3, GCS) implement the same file interface |
+| E6 | No implementation code in `contracts/`; all types are interfaces or plain data structs |
 
 ---
 
-## Success Metrics
+## Non-Goals
 
-| Metric | Target |
-|--------|--------|
-| Test coverage | >= 95% |
-| Package independence | Zero cross-package imports |
-| Documentation | 100% Godoc coverage |
-| Performance | < 1µs overhead per logctx lookup |
-| Registry ref count accuracy | 100% (unit test) |
-
----
-
-## Out of Scope (v1)
-
-- Web UI for registry inspection
-- Metrics/observability integration (future: prometheus)
-- Distributed registry (future: consensus-based)
-- Custom serialization plugins
-- Plugin architecture for hooks
-
----
-
-## Dependencies
-
-### Required (stdlib only)
-- Go 1.22+
-- `context`
-- `log/slog`
-- `sync`
-- `time`
-
-### Optional (tests only)
-- `github.com/coder/quartz` (v0.1.2+) — fake clock for waitfor tests
-
-### Zero Runtime Dependencies
-- All packages use only Go stdlib
-
----
-
-## Version 1 Release Checklist
-
-- [x] logctx: WithLogger, From, panic semantics
-- [x] ringbuffer: generic circular buffer with thread safety
-- [x] waitfor: exponential backoff polling with quartz integration
-- [x] registry: ref-counted generic registry with hooks
-- [x] Unit tests with >95% coverage for all packages
-- [x] README.md with examples
-- [x] Godoc coverage for all public API
-- [x] go.mod / go.sum setup
-- [x] CI: tests, lint, race detector
-- [ ] Comprehensive examples (e.g., multi-package integration)
-- [ ] Performance benchmarks
-- [ ] API stability guarantee (semantic versioning)
+- This module does not define application business logic or domain rules.
+- It does not provide a full HTTP framework — it provides middleware composable with `go-chi/chi`.
+- It does not implement distributed circuit breaking or rate limiting across pods (local only, Redis integration is a future extension).
+- It does not include UI or CLI tooling.

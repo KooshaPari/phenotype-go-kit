@@ -1,180 +1,155 @@
-# phenotype-go-kit — Functional Requirements
+# Functional Requirements — phenotype-go-kit
 
-## FR-LOGCTX-001: Context-Scoped Logger Injection
-
-| Requirement ID | Description | Verification |
-|---|---|---|
-| FR-LOGCTX-001.1 | Package `logctx` SHALL export function `WithLogger(ctx context.Context, logger *slog.Logger) context.Context` | Function signature matches; returns new context with logger attached |
-| FR-LOGCTX-001.2 | Function `From(ctx context.Context) *slog.Logger` SHALL retrieve logger from context | Function retrieves value for loggerKey; type asserts to *slog.Logger |
-| FR-LOGCTX-001.3 | `From()` SHALL panic with descriptive message if no logger found in context | Test: call From() with clean context; verify panic occurs |
-| FR-LOGCTX-001.4 | Panic message SHALL include "no logger found in context" for debugging | Panic recovery test; verify error string |
-| FR-LOGCTX-001.5 | Function SHALL work with nested contexts (parent→child chains) | Test: create parent ctx with logger; derive child; child retrieves parent's logger |
-| FR-LOGCTX-001.6 | Logger retrieval SHALL be O(1) with zero allocations | Benchmark WithLogger/From; verify < 10ns per call |
-| FR-LOGCTX-001.7 | Logger type used SHALL be `*slog.Logger` from Go 1.21+ stdlib | Import from log/slog; no wrapper types |
+FR IDs follow the pattern `FR-{CAT}-{NNN}` where CAT is the package category abbreviation.
 
 ---
 
-## FR-RINGBUFFER-001: Generic Circular Buffer
+## FR-AUTH — Authentication and Authorization (`auth/`)
 
-| Requirement ID | Description | Verification |
-|---|---|---|
-| FR-RINGBUFFER-001.1 | Package `ringbuffer` SHALL export generic type `RingBuffer[T any]` | Type definition uses `[T any]` syntax |
-| FR-RINGBUFFER-001.2 | Function `New[T](capacity int) *RingBuffer[T]` SHALL create buffer with fixed capacity | Constructor allocates slice of size capacity; capacity immutable |
-| FR-RINGBUFFER-001.3 | Method `Push(item T)` SHALL add item to buffer | Item added to next position in circular array |
-| FR-RINGBUFFER-001.4 | On overflow (buffer full), `Push()` SHALL overwrite oldest entry without error | Test: push 4 items to capacity 3; oldest is overwritten |
-| FR-RINGBUFFER-001.5 | Method `GetAll() []T` SHALL return all items in FIFO order (oldest first) | Test: push 3 items; GetAll() returns them in order |
-| FR-RINGBUFFER-001.6 | Method `Len() int` SHALL return current count of items in buffer | Count <= capacity; count == 0 after New() |
-| FR-RINGBUFFER-001.7 | Method `Cap() int` SHALL return fixed capacity set at creation | Cap() == capacity arg to New() |
-| FR-RINGBUFFER-001.8 | `GetAll()` SHALL return a copy (not reference to internal slice) | Modify returned slice; verify internal buffer unchanged |
-| FR-RINGBUFFER-001.9 | Push/GetAll/Len/Cap SHALL be thread-safe with sync.RWMutex | Concurrent push + read; verify no data corruption or race conditions |
-| FR-RINGBUFFER-001.10 | Overflow behavior (round-robin overwrite) SHALL use modulo arithmetic | Index wraps: (current + 1) % capacity |
-
----
-
-## FR-WAITFOR-001: Polling with Exponential Backoff
-
-| Requirement ID | Description | Verification |
-|---|---|---|
-| FR-WAITFOR-001.1 | Package `waitfor` SHALL export type `WaitTimeout` struct with fields: `Timeout`, `MinInterval`, `MaxInterval`, `InitialWait` | Struct definition with correct types: time.Duration for intervals, bool for InitialWait |
-| FR-WAITFOR-001.2 | Function `WaitFor(ctx, timeout, condition) error` SHALL poll condition until true, timeout, or error | Implementation: loop calling condition; sleep between attempts |
-| FR-WAITFOR-001.3 | Condition function signature: `func() (bool, error)` | Condition returns (satisfied bool, err error) |
-| FR-WAITFOR-001.4 | If condition returns error, WaitFor SHALL propagate error immediately without retry | Test: condition returns error; WaitFor returns that error |
-| FR-WAITFOR-001.5 | If condition returns false, WaitFor SHALL sleep and retry | Loop continues until condition true, timeout, or context deadline |
-| FR-WAITFOR-001.6 | Backoff algorithm: sleep MinInterval * 2^(attempt-1), capped at MaxInterval | Attempt 1: sleep MinInterval * 2^0 = MinInterval; Attempt 2: sleep MinInterval * 2^1; capped at MaxInterval |
-| FR-WAITFOR-001.7 | `InitialWait=false` SHALL check condition before first sleep | Attempt 0: condition check; if true, return immediately |
-| FR-WAITFOR-001.8 | `InitialWait=true` SHALL sleep before first condition check | Attempt 0: sleep MinInterval; then check condition |
-| FR-WAITFOR-001.9 | WaitFor SHALL return `ErrTimedOut` if timeout expires before condition true | Export ErrTimedOut sentinel; test verifies error equality |
-| FR-WAITFOR-001.10 | WaitFor SHALL respect context cancellation (ctx.Done()) | Test: cancel context during poll; WaitFor returns context.Cause(ctx) |
-| FR-WAITFOR-001.11 | Function `After(clock quartz.Clock, duration time.Duration) <-chan time.Time` SHALL return channel that fires after duration | If clock nil, use time.After(); if clock provided, use clock.After() |
-| FR-WAITFOR-001.12 | After() SHALL support github.com/coder/quartz for testable (fake) clocks | Test: pass quartz.NewMock(); advance time; verify channel fires |
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-AUTH-001 | The `JWTValidator` SHALL generate access tokens signed with HS256 (HMAC-SHA256) when `JWTConfig.PrivateKey` is nil | E1.1 | Implemented |
+| FR-AUTH-002 | The `JWTValidator` SHALL generate access tokens signed with RS256 (RSA-256) when `JWTConfig.PrivateKey` is set | E1.1 | Implemented |
+| FR-AUTH-003 | `GenerateTokenPair` SHALL return a `TokenPair` containing access token, refresh token, expiry seconds, and token type "Bearer" | E1.1 | Implemented |
+| FR-AUTH-004 | `ValidateAccessToken` SHALL reject tokens with `Scope != "access"` with `ErrInvalidClaims` | E1.1 | Implemented |
+| FR-AUTH-005 | `ValidateRefreshToken` SHALL reject tokens with `Scope != "refresh"` with `ErrInvalidClaims` | E1.1 | Implemented |
+| FR-AUTH-006 | The JWT middleware SHALL extract the Bearer token from the `Authorization` header and return HTTP 401 if absent or malformed | E1.2 | Implemented |
+| FR-AUTH-007 | The JWT middleware SHALL inject `user_id`, `user_email`, and `user_roles` values into `context.Context` on successful validation | E1.2 | Implemented |
+| FR-AUTH-008 | `RequireRole` middleware SHALL return HTTP 403 when the authenticated user lacks any of the required roles | E1.3 | Implemented |
+| FR-AUTH-009 | `GenerateAPIKey` SHALL produce a URL-safe base64 string of 32 random bytes, optionally prefixed | E1.4 | Implemented |
+| FR-AUTH-010 | `HashAPIKey` SHALL produce a SHA-256 hash of the raw key, base64-encoded, suitable for storage | E1.4 | Implemented |
+| FR-AUTH-011 | `APIKeyManager.CreateKey` SHALL store only the hash, not the raw key | E1.4 | Implemented |
+| FR-AUTH-012 | `APIKeyManager.RevokeKey` SHALL delete the key by ID and return an error if the ID is not found | E1.4 | Implemented |
+| FR-AUTH-013 | `GetUserID`, `GetUserEmail`, `GetUserRoles` SHALL return zero values (empty string / nil slice) when the corresponding context key is absent, not panic | E1.5 | Implemented |
 
 ---
 
-## FR-REGISTRY-001: Thread-Safe Generic Registry with Ref Counting
+## FR-METR — Metrics (`metrics/`)
 
-| Requirement ID | Description | Verification |
-|---|---|---|
-| FR-REGISTRY-001.1 | Package `registry` SHALL export generic type `Registry[K comparable, V any]` | Type definition uses [K comparable, V any] |
-| FR-REGISTRY-001.2 | Function `New[K, V]() *Registry[K, V]` SHALL create empty registry | Constructor initializes map and mutex |
-| FR-REGISTRY-001.3 | Method `Register(ownerID K, key K, value V)` SHALL store value under key claimed by owner | Entry created if not exists; ref count incremented if exists |
-| FR-REGISTRY-001.4 | Multiple owners MAY register same key with same/different values | Test: owner-a and owner-b both register "svc"; both entries live as long as both own it |
-| FR-REGISTRY-001.5 | Method `Unregister(ownerID K)` SHALL remove all entries owned by ownerID | All keys registered by ownerID are unregistered |
-| FR-REGISTRY-001.6 | Unregister() SHALL decrement ref count; remove entry only if count reaches 0 | Test: 2 owners of same key; unregister 1; entry still exists; unregister 2; entry removed |
-| FR-REGISTRY-001.7 | Method `Get(key K) (V, bool)` SHALL retrieve value by key | Returns (value, true) if exists; (zero, false) if not |
-| FR-REGISTRY-001.8 | Method `Count(key K) int` SHALL return number of owners holding key | Count = len(owners) for key |
-| FR-REGISTRY-001.9 | Method `List() map[K]V` SHALL return snapshot of all live entries | Returns copy of entries map; mutations don't affect registry |
-| FR-REGISTRY-001.10 | Method `SetHook(hook Hook[K, V])` SHALL register observer for changes | Hook interface: OnRegister(ownerID K, key K, value V), OnUnregister(ownerID K) |
-| FR-REGISTRY-001.11 | Hook.OnRegister() SHALL fire synchronously during Register() call | Observe every Register call; hook must complete before Register returns |
-| FR-REGISTRY-001.12 | Hook.OnUnregister() SHALL fire synchronously during Unregister() call | Observe every Unregister call |
-| FR-REGISTRY-001.13 | If no hook set, registry SHALL operate with zero observability overhead | No-op hook code path optimized away; same performance as unhooks version |
-| FR-REGISTRY-001.14 | Registry operations SHALL be thread-safe | sync.RWMutex protects all reads and writes; concurrent Register/Get/Unregister safe |
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-METR-001 | `NewMetrics` SHALL register HTTP request count, duration, and response size histograms under the `phenotype_http` namespace | E2.1 | Implemented |
+| FR-METR-002 | `NewMetrics` SHALL register job queue depth, processing time, and retry counters under the `phenotype_jobs` namespace | E2.1 | Implemented |
+| FR-METR-003 | `NewMetrics` SHALL register DB query duration and error counters under the `phenotype_db` namespace | E2.1 | Implemented |
+| FR-METR-004 | `MetricsMiddleware` SHALL record method, path, and HTTP status code for every non-health request | E2.2 | Implemented |
+| FR-METR-005 | `MetricsMiddleware` SHALL skip recording for paths `/health` and `/ready` | E2.2 | Implemented |
+| FR-METR-006 | `RecordBusinessMetric` SHALL lazily register a new `CounterVec` for previously unseen metric names | E2.1 | Implemented |
 
 ---
 
-## FR-CROSS-001: Zero Cross-Package Dependencies
+## FR-TRAC — Tracing (`tracing/`)
 
-| Requirement ID | Description | Verification |
-|---|---|---|
-| FR-CROSS-001.1 | logctx package SHALL have zero imports of ringbuffer, waitfor, registry | Grep imports in logctx/logctx.go; no github.com/KooshaPari/phenotype-go-kit imports |
-| FR-CROSS-001.2 | ringbuffer package SHALL have zero imports of logctx, waitfor, registry | Same grep check |
-| FR-CROSS-001.3 | waitfor package SHALL have zero imports of logctx, ringbuffer, registry | Same grep check |
-| FR-CROSS-001.4 | registry package SHALL have zero imports of logctx, ringbuffer, waitfor | Same grep check |
-| FR-CROSS-001.5 | No circular imports between any packages | `go build ./...` succeeds; `go mod graph` shows no cycles |
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-TRAC-001 | The tracing package SHALL initialize an OpenTelemetry `TracerProvider` with OTLP/gRPC export | E2.3 | Implemented |
+| FR-TRAC-002 | The tracer endpoint SHALL be configurable at runtime (not hardcoded) | E2.3 | Implemented |
 
 ---
 
-## FR-TEST-001: Test Coverage & Quality
+## FR-LOG — Logging (`logging/`)
 
-| Requirement ID | Description | Verification |
-|---|---|---|
-| FR-TEST-001.1 | All packages SHALL have unit tests with >= 95% code coverage | `go test -cover ./...` reports coverage >= 95% for each package |
-| FR-TEST-001.2 | logctx tests SHALL verify panic on From() with no logger | Test case: from(clean context) panics with "no logger found" |
-| FR-TEST-001.3 | logctx tests SHALL verify logger retrieval in nested contexts | Parent context → child context → retrieve parent's logger |
-| FR-TEST-001.4 | ringbuffer tests SHALL verify FIFO ordering on push/getall | Test: push [1,2,3]; getall returns [1,2,3] |
-| FR-TEST-001.5 | ringbuffer tests SHALL verify overflow (oldest overwritten) | Test: capacity 3, push [1,2,3,4]; getall returns [2,3,4] |
-| FR-TEST-001.6 | ringbuffer tests SHALL verify concurrent push/read (race detector) | `go test -race ./ringbuffer` passes |
-| FR-TEST-001.7 | waitfor tests SHALL use quartz.NewMock() for deterministic timing | Test advances fake clock; verifies polling without real sleep |
-| FR-TEST-001.8 | waitfor tests SHALL verify backoff algorithm: 50ms, 100ms, 200ms, capped at 2s | Test condition that fails N times; verify total sleep time matches backoff |
-| FR-TEST-001.9 | waitfor tests SHALL verify ErrTimedOut on timeout | Test: timeout 100ms; condition never true; error == ErrTimedOut |
-| FR-TEST-001.10 | waitfor tests SHALL verify immediate return if condition true at first check | InitialWait=false; condition true immediately; no sleep |
-| FR-TEST-001.11 | registry tests SHALL verify ref counting (2 owners, unregister 1, entry still exists) | Test: Register(owner1, "svc"), Register(owner2, "svc"), Unregister(owner1), Get("svc") == ok |
-| FR-TEST-001.12 | registry tests SHALL verify hook invocation on register/unregister | Test: SetHook(observer); Register/Unregister; verify OnRegister/OnUnregister called |
-| FR-TEST-001.13 | registry tests SHALL verify concurrent register/unregister (race detector) | `go test -race ./registry` passes |
-| FR-TEST-001.14 | All tests SHALL pass with `go test -race ./...` (race detector enabled) | Command succeeds; no race conditions detected |
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-LOG-001 | The logging package SHALL provide structured output via `log/slog` | E2.4 | Implemented |
+| FR-LOG-002 | The logging package SHALL provide log file rotation (size/time-based) | E2.4 | Implemented |
+| FR-LOG-003 | A gRPC interceptor SHALL log method name, duration, and error for every gRPC call | E2.4 | Implemented |
 
 ---
 
-## FR-BUILD-001: Build & Quality Gates
+## FR-HLTH — Health Checks (`health/`)
 
-| Requirement ID | Description | Verification |
-|---|---|---|
-| FR-BUILD-001.1 | Go version requirement: >= 1.22 (generics, slog) | go.mod: `go 1.22` or later |
-| FR-BUILD-001.2 | `go test ./...` SHALL pass all unit tests | All tests pass; no failures or panics |
-| FR-BUILD-001.3 | `go test -race ./...` SHALL pass with no race conditions | Race detector finds zero data races |
-| FR-BUILD-001.4 | `go vet ./...` SHALL find zero issues | Static analysis clean |
-| FR-BUILD-001.5 | `gofumpt -l .` SHALL report zero formatting issues | Code formatted with gofumpt |
-| FR-BUILD-001.6 | `golangci-lint run` SHALL report zero lint violations | Linter config in .golangci.yml; all rules green |
-| FR-BUILD-001.7 | go.mod dependencies SHALL be minimal | No unnecessary vendoring; only coder/quartz for tests |
-| FR-BUILD-001.8 | Module name: `github.com/KooshaPari/phenotype-go-kit` | go.mod contains correct module |
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-HLTH-001 | `HealthChecker.Register` SHALL accept any type implementing the `Checker` interface | E2.5 | Implemented |
+| FR-HLTH-002 | `RunAll` SHALL enforce the configured timeout per individual check | E2.5 | Implemented |
+| FR-HLTH-003 | `ReadinessHandler` SHALL return HTTP 503 and JSON `{"status":"unhealthy"}` if any check status is `"unhealthy"` | E2.5 | Implemented |
+| FR-HLTH-004 | `ReadinessHandler` SHALL return HTTP 200 and JSON `{"status":"healthy"}` when all checks pass | E2.5 | Implemented |
+| FR-HLTH-005 | `LivenessHandler` SHALL always return HTTP 200 "OK" | E2.5 | Implemented |
 
 ---
 
-## FR-DOC-001: Documentation
+## FR-CIRC — Circuit Breaker (`circuit/`)
 
-| Requirement ID | Description | Verification |
-|---|---|---|
-| FR-DOC-001.1 | README.md SHALL include quick-start examples for each package | Examples: logctx WithLogger/From, ringbuffer Push/GetAll, waitfor WaitFor, registry Register/Get |
-| FR-DOC-001.2 | All public types and functions SHALL have Godoc comments | `go doc ./...` displays comments for all exported symbols |
-| FR-DOC-001.3 | Godoc comments SHALL include usage examples where applicable | E.g., `Example: rb.Push(1); rb.GetAll() // [1]` |
-| FR-DOC-001.4 | README.md SHALL include sections: Overview, Packages, Install, Development | Structure matches standard Go project layout |
-| FR-DOC-001.5 | Development section SHALL document: `go test -race ./...`, `go vet ./...`, `gofumpt`, `golangci-lint` | Clear instructions for contributors |
-
----
-
-## Traceability Matrix
-
-| FR ID | Package | Type | Priority |
-|-------|---------|------|----------|
-| FR-LOGCTX-001 | logctx | Core API | P1 |
-| FR-RINGBUFFER-001 | ringbuffer | Core API | P1 |
-| FR-WAITFOR-001 | waitfor | Core API | P1 |
-| FR-REGISTRY-001 | registry | Core API | P1 |
-| FR-CROSS-001 | All | Architecture | P1 |
-| FR-TEST-001 | All | Quality | P1 |
-| FR-BUILD-001 | All | Build | P1 |
-| FR-DOC-001 | All | Documentation | P2 |
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-CIRC-001 | `Breaker.Execute` SHALL return `ErrCircuitOpen` immediately when the breaker is in the Open state and the timeout has not elapsed | E3.1 | Implemented |
+| FR-CIRC-002 | `Breaker` SHALL transition from Open to HalfOpen after `Config.Timeout` has elapsed | E3.1 | Implemented |
+| FR-CIRC-003 | `Breaker` SHALL transition from HalfOpen to Closed after `Config.SuccessThreshold` consecutive successes | E3.1 | Implemented |
+| FR-CIRC-004 | `Breaker` SHALL transition from HalfOpen to Open on any single failure | E3.1 | Implemented |
+| FR-CIRC-005 | `Breaker` SHALL transition from Closed to Open after `Config.FailureThreshold` consecutive failures | E3.1 | Implemented |
+| FR-CIRC-006 | `Breaker.Execute` SHALL respect `Config.RequestTimeout` and count a timeout as a failure | E3.1 | Implemented |
+| FR-CIRC-007 | `MultiBreaker.Get` SHALL be safe for concurrent callers and return the same `Breaker` for the same name | E3.1 | Implemented |
 
 ---
 
-## Test Scenarios by Package
+## FR-RETR — Retry (`retry/`)
 
-### logctx Test Scenarios
-- T-LOGCTX-01: WithLogger stores logger in context
-- T-LOGCTX-02: From retrieves logger from context
-- T-LOGCTX-03: From panics if no logger (programmer error)
-- T-LOGCTX-04: Nested contexts inherit parent logger
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-RETR-001 | `retry.Do` SHALL attempt the function up to `Config.MaxAttempts` times | E3.2 | Implemented |
+| FR-RETR-002 | `retry.Do` SHALL apply exponential backoff: `delay *= Config.Multiplier` after each failure | E3.2 | Implemented |
+| FR-RETR-003 | `retry.Do` SHALL cap the delay at `Config.MaxDelay` | E3.2 | Implemented |
+| FR-RETR-004 | When `Config.Jitter` is true, `retry.Do` SHALL apply +/- 25% random jitter to each wait | E3.2 | Implemented |
+| FR-RETR-005 | `retry.Do` SHALL return `ctx.Err()` immediately when `ctx.Done()` fires during a wait | E3.2 | Implemented |
+| FR-RETR-006 | `PermanentError` SHALL mark errors as non-retryable; callers can detect via `IsPermanent` | E3.2 | Implemented |
 
-### ringbuffer Test Scenarios
-- T-RINGBUFFER-01: Push/GetAll maintains FIFO order
-- T-RINGBUFFER-02: Overflow overwrites oldest entry
-- T-RINGBUFFER-03: Len/Cap return correct values
-- T-RINGBUFFER-04: Concurrent push/read (race detector)
+---
 
-### waitfor Test Scenarios
-- T-WAITFOR-01: Exponential backoff: 50ms → 100ms → 200ms → capped at 2s
-- T-WAITFOR-02: InitialWait=false checks condition immediately
-- T-WAITFOR-03: InitialWait=true sleeps before first check
-- T-WAITFOR-04: ErrTimedOut on timeout
-- T-WAITFOR-05: Condition error propagates immediately
-- T-WAITFOR-06: Context cancellation interrupts polling
-- T-WAITFOR-07: Fake clock (quartz) enables deterministic tests
+## FR-RLIM — Rate Limiting (`ratelimit/`)
 
-### registry Test Scenarios
-- T-REGISTRY-01: Single owner register/get
-- T-REGISTRY-02: Multiple owners same key (ref counting)
-- T-REGISTRY-03: Unregister decrements ref count
-- T-REGISTRY-04: Last unregister removes entry
-- T-REGISTRY-05: Hook.OnRegister fires on Register
-- T-REGISTRY-06: Hook.OnUnregister fires on Unregister
-- T-REGISTRY-07: List returns snapshot (safe iteration)
-- T-REGISTRY-08: Concurrent register/unregister (race detector)
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-RLIM-001 | `RateLimiter.Allow` SHALL implement the token bucket algorithm with configurable `RequestsPerSecond` and `BurstSize` | E3.3 | Implemented |
+| FR-RLIM-002 | `RateLimiter.Allow` SHALL return false immediately for blocked keys before their block expiry | E3.3 | Implemented |
+| FR-RLIM-003 | `RateLimiter.Middleware` SHALL extract the rate limit key in priority order: X-API-Key header, Authorization header, remote IP | E3.3 | Implemented |
+| FR-RLIM-004 | `RateLimiter.Middleware` SHALL return HTTP 429 with `Retry-After: 1` when the limit is exceeded | E3.3 | Implemented |
+| FR-RLIM-005 | The limiter SHALL run a background cleanup goroutine to evict stale client entries after `Config.CleanupInterval` | E3.3 | Implemented |
+
+---
+
+## FR-RING — Ring Buffer (`ringbuffer/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-RING-001 | The ring buffer SHALL have a fixed capacity set at construction time | E3.4 | Implemented |
+| FR-RING-002 | Write operations to a full ring buffer SHALL overwrite the oldest entry | E3.4 | Implemented |
+| FR-RING-003 | All ring buffer operations SHALL be safe for concurrent use | E3.4 | Implemented |
+
+---
+
+## FR-CACHE — Cache (`cache/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-CACHE-001 | The Redis cache adapter SHALL set values with a caller-provided TTL | E4.2 | Implemented |
+| FR-CACHE-002 | `invalidation.go` SHALL provide TTL-based cache invalidation logic | E4.2 | Implemented |
+| FR-CACHE-003 | The cache service layer SHALL expose CQRS-style handlers for cache read/write operations | E4.2 | Implemented |
+
+---
+
+## FR-STOR — Storage (`storage/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-STOR-001 | The S3 adapter SHALL support upload, download, and delete using AWS SDK v2 | E4.3 | Implemented |
+| FR-STOR-002 | The GCS adapter SHALL support upload, download, and delete using the Google Cloud Storage client | E4.3 | Implemented |
+| FR-STOR-003 | Both storage adapters SHALL implement the same file storage interface | E4.3 | Implemented |
+
+---
+
+## FR-CONF — Configuration (`config/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-CONF-001 | Configuration SHALL be loadable from YAML files, environment variables, and command-line flags via Viper | E5.1 | Implemented |
+
+---
+
+## FR-CONT — Contracts (`contracts/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-CONT-001 | `contracts/ports/inbound` SHALL define driving port interfaces (UseCase, CommandHandler, QueryHandler) | E6.1 | Implemented |
+| FR-CONT-002 | `contracts/ports/outbound` SHALL define driven port interfaces (Repository, Cache, EventPublisher, Secrets) | E6.1 | Implemented |
+| FR-CONT-003 | `contracts/models` SHALL define domain event and model types shared across adapters | E6.2 | Implemented |
+| FR-CONT-004 | No implementation code (non-interface, non-struct) SHALL exist in the `contracts/` tree | E6.1 | Implemented |
