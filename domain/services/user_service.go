@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"time"
 
-	github.com/KooshaPari/phenotype-go-kit/domain/entities"
-	github.com/KooshaPari/phenotype-go-kit/domain/ports"
+	"github.com/KooshaPari/phenotype-go-kit/domain/entities"
+	"github.com/KooshaPari/phenotype-go-kit/domain/ports"
 )
 
 // ValidationError represents a validation failure.
@@ -56,7 +56,8 @@ func (s *UserService) Create(ctx context.Context, email, name string) (*entities
 
 	// Check for duplicate email
 	existing, err := s.userRepo.FindByFilter(ctx, map[string]any{"email": email})
-	if err != nil && !errors.Is(err, ports.ErrNotFound{}) {
+	var notFound *ports.ErrNotFound
+	if err != nil && !errors.As(err, &notFound) {
 		s.logger.Error("failed to check existing user", ports.Error(err))
 		return nil, fmt.Errorf("check user: %w", err)
 	}
@@ -90,8 +91,7 @@ func (s *UserService) Create(ctx context.Context, email, name string) (*entities
 func (s *UserService) GetByID(ctx context.Context, id string) (*entities.User, error) {
 	// Try cache first
 	cacheKey := "user:" + id
-	cached, err := s.cache.Get(ctx, cacheKey)
-	if err == nil {
+	if _, err := s.cache.Get(ctx, cacheKey); err == nil {
 		// Cache hit - deserialize and return
 		// (simplified - in practice use JSON unmarshal)
 		return nil, nil // Placeholder
@@ -100,7 +100,8 @@ func (s *UserService) GetByID(ctx context.Context, id string) (*entities.User, e
 	// Cache miss - get from repo
 	user, err := s.userRepo.FindByID(ctx, id)
 	if err != nil {
-		if errors.Is(err, ports.ErrNotFound{}) {
+		var notFound *ports.ErrNotFound
+		if errors.As(err, &notFound) {
 			return nil, err
 		}
 		return nil, fmt.Errorf("find user: %w", err)
@@ -108,7 +109,7 @@ func (s *UserService) GetByID(ctx context.Context, id string) (*entities.User, e
 
 	// Don't cache deleted users
 	if !user.IsActive() {
-		return nil, ports.ErrNotFound{Entity: "user", ID: id}
+		return nil, &ports.ErrNotFound{Entity: "user", ID: id}
 	}
 
 	// Cache the result

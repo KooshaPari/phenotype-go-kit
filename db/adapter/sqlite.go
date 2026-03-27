@@ -7,12 +7,12 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 
-	github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 // SQLiteAdapter implements outbound.QueryExecutor for SQLite.
 type SQLiteAdapter struct {
-	db          *sql.DB
+	db           *sql.DB
 	queryTimeout int // milliseconds
 }
 
@@ -24,7 +24,7 @@ func NewSQLiteAdapter(dsn string, config outbound.PoolConfig) (*SQLiteAdapter, e
 	}
 
 	adapter := &SQLiteAdapter{
-		db:          db,
+		db:           db,
 		queryTimeout: config.QueryTimeout,
 	}
 
@@ -38,7 +38,7 @@ func NewSQLiteAdapter(dsn string, config outbound.PoolConfig) (*SQLiteAdapter, e
 // NewSQLiteAdapterFromDB creates an adapter from an existing database connection.
 func NewSQLiteAdapterFromDB(db *sql.DB) *SQLiteAdapter {
 	return &SQLiteAdapter{
-		db:          db,
+		db:           db,
 		queryTimeout: 30000,
 	}
 }

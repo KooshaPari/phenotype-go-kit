@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 // MySQLAdapter implements outbound.QueryExecutor for MySQL.
 type MySQLAdapter struct {
-	db          *sql.DB
+	db           *sql.DB
 	queryTimeout time.Duration
 }
 
@@ -23,7 +23,7 @@ func NewMySQLAdapter(dsn string, config outbound.PoolConfig) (*MySQLAdapter, err
 	}
 
 	adapter := &MySQLAdapter{
-		db:          db,
+		db:           db,
 		queryTimeout: time.Duration(config.QueryTimeout) * time.Millisecond,
 	}
 
@@ -38,7 +38,7 @@ func NewMySQLAdapter(dsn string, config outbound.PoolConfig) (*MySQLAdapter, err
 // NewMySQLAdapterFromDB creates an adapter from an existing database connection.
 func NewMySQLAdapterFromDB(db *sql.DB) *MySQLAdapter {
 	return &MySQLAdapter{
-		db:          db,
+		db:           db,
 		queryTimeout: 30 * time.Second,
 	}
 }
@@ -108,8 +108,8 @@ func (a *MySQLAdapter) Stats() outbound.PoolStats {
 		OpenConnections:    stats.OpenConnections,
 		InUseConnections:   stats.InUse,
 		IdleConnections:    stats.Idle,
-		WaitCount:         stats.WaitCount,
-		WaitDuration:      stats.WaitDuration.Nanoseconds(),
+		WaitCount:          stats.WaitCount,
+		WaitDuration:       stats.WaitDuration.Nanoseconds(),
 	}
 }
 

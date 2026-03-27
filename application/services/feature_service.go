@@ -2,9 +2,11 @@ package services
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
+	outbound "github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 	"github.com/KooshaPari/phenotype-go-kit/domain/entities"
 	"github.com/KooshaPari/phenotype-go-kit/domain/ports"
 )
@@ -20,10 +22,10 @@ import (
 type FeatureService struct {
 	featureRepo   ports.FeatureRepositoryPort
 	wpRepo        ports.WorkPackageRepositoryPort
-	cache         ports.CachePort
-	eventBus      ports.EventBusPort
+	cache         outbound.CacheInvalidationPort
+	eventBus      outbound.EventBusPort
 	audit         ports.AuditPort
-	observability ports.ObservabilityPort
+	observability outbound.ObservabilityPort
 }
 
 // NewFeatureService creates a new FeatureService.
@@ -31,10 +33,10 @@ type FeatureService struct {
 func NewFeatureService(
 	featureRepo ports.FeatureRepositoryPort,
 	wpRepo ports.WorkPackageRepositoryPort,
-	cache ports.CachePort,
-	eventBus ports.EventBusPort,
+	cache outbound.CacheInvalidationPort,
+	eventBus outbound.EventBusPort,
 	audit ports.AuditPort,
-	observability ports.ObservabilityPort,
+	observability outbound.ObservabilityPort,
 ) *FeatureService {
 	return &FeatureService{
 		featureRepo:   featureRepo,
@@ -104,7 +106,7 @@ func (s *FeatureService) CreateFeature(ctx context.Context, input CreateFeatureI
 	}
 
 	// Invalidate cache
-	if err := s.cache.Invalidate(ctx, "features:list"); err != nil {
+	if _, err := s.cache.DeletePattern(ctx, "features:list*"); err != nil {
 		s.observability.RecordError(ctx, "CreateFeature.cache", err)
 	}
 
@@ -210,7 +212,7 @@ func (s *FeatureService) ListFeatures(ctx context.Context, filter map[string]any
 	}
 
 	// Cache result (5 minute TTL)
-	s.cache.Set(ctx, cacheKey, s.marshalFeatures(features), 5*time.Minute)
+	_ = s.cache.Set(ctx, cacheKey, s.marshalFeatures(features), 5*time.Minute)
 
 	return features, nil
 }
@@ -221,13 +223,19 @@ func (s *FeatureService) GetFeature(ctx context.Context, id string) (*entities.F
 }
 
 // marshalFeatures serializes features for caching.
-func (s *FeatureService) marshalFeatures(features []entities.Feature) []byte {
-	// Simplified - in production use proper serialization
-	return []byte(fmt.Sprintf("%d features", len(features)))
+func (s *FeatureService) marshalFeatures(features []entities.Feature) string {
+	data, err := json.Marshal(features)
+	if err != nil {
+		return "[]"
+	}
+	return string(data)
 }
 
 // unmarshalFeatures deserializes features from cache.
-func (s *FeatureService) unmarshalFeatures(data []byte) ([]entities.Feature, error) {
-	// Simplified - in production use proper deserialization
-	return nil, nil
+func (s *FeatureService) unmarshalFeatures(data string) ([]entities.Feature, error) {
+	var features []entities.Feature
+	if err := json.Unmarshal([]byte(data), &features); err != nil {
+		return nil, err
+	}
+	return features, nil
 }

@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"log/slog"
-	"strings"
 	"time"
 
 	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/inbound"
@@ -132,8 +131,8 @@ func (s *CacheService) TTLCacheHandler() inbound.TTLHandler {
 		}
 
 		result := inbound.TTLResult{
-			Exists:   ttl > 0 || strings.Contains(err.Error(), "no expiry"),
-			HasTTL:   !ttl.IsNeg() && !ttl.IsZero(),
+			Exists:   ttl > 0,
+			HasTTL:   ttl > 0,
 			Duration: int64(ttl.Seconds()),
 		}
 
