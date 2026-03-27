@@ -72,6 +72,11 @@ type EventPublisher interface {
 	Subscribe(ctx context.Context, topic string, handler models.EventHandler) error
 }
 
+// EventBusPort defines the minimal event bus contract used by application services.
+type EventBusPort interface {
+	Publish(ctx context.Context, topic string, event any) error
+}
+
 // Cache defines interface for caching operations.
 type Cache interface {
 	// Get retrieves a value from cache.
@@ -148,6 +153,11 @@ type Logger interface {
 
 	// Fatal logs a fatal message and exits.
 	Fatal(ctx context.Context, msg string, args ...any)
+}
+
+// ObservabilityPort records errors and operational signals.
+type ObservabilityPort interface {
+	RecordError(ctx context.Context, operation string, err error)
 }
 
 // ConfigProvider defines interface for configuration management.

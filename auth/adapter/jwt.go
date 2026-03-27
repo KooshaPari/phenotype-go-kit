@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 var (
@@ -107,6 +107,7 @@ func (a *JWTValidatorAdapter) GenerateTokenPair(ctx context.Context, userID, ema
 
 	accessClaims := JWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        newTokenID(),
 			ExpiresAt: jwt.NewNumericDate(now.Add(a.config.AccessTokenExpiry)),
 			IssuedAt:  jwt.NewNumericDate(now),
 			Issuer:    a.config.Issuer,
@@ -120,6 +121,7 @@ func (a *JWTValidatorAdapter) GenerateTokenPair(ctx context.Context, userID, ema
 
 	refreshClaims := JWTClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
+			ID:        newTokenID(),
 			ExpiresAt: jwt.NewNumericDate(now.Add(a.config.RefreshTokenExpiry)),
 			IssuedAt:  jwt.NewNumericDate(now),
 			Issuer:    a.config.Issuer,
@@ -224,6 +226,14 @@ func (a *JWTValidatorAdapter) toUserClaims(claims *JWTClaims) *outbound.UserClai
 		Roles:  claims.Roles,
 		Scope:  claims.Scope,
 	}
+}
+
+func newTokenID() string {
+	bytes := make([]byte, 16)
+	if _, err := rand.Read(bytes); err != nil {
+		return fmt.Sprintf("token-%d", time.Now().UnixNano())
+	}
+	return base64.RawURLEncoding.EncodeToString(bytes)
 }
 
 // APIKeyManagerAdapter implements outbound.APIKeyPort.

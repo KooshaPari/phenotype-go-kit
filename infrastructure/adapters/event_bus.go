@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
-
-	github.com/KooshaPari/phenotype-go-kit/domain/ports"
 )
 
 // EventBusPort defines the interface for event publishing.
@@ -28,7 +26,7 @@ type EventBusPort interface {
 // - Redis Streams for simple message queuing
 type InMemoryEventBus struct {
 	subscribers map[string][]func(any)
-	mu         sync.RWMutex
+	mu          sync.RWMutex
 }
 
 // NewInMemoryEventBus creates a new InMemoryEventBus.

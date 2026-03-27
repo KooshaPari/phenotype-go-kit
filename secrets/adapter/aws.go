@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"strings"
 
-	github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 // AWSSecretsAdapter implements outbound.SecretPort for AWS Secrets Manager.

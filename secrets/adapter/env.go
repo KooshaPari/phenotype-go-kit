@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 // EnvAdapter implements outbound.SecretPort using environment variables.

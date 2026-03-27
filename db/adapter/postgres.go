@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
+	"github.com/KooshaPari/phenotype-go-kit/contracts/ports/outbound"
 )
 
 // PostgresAdapter implements outbound.QueryExecutor for PostgreSQL.
@@ -129,12 +129,12 @@ func (a *PostgresAdapter) Stats() outbound.PoolStats {
 	return outbound.PoolStats{
 		MaxOpenConnections: stats.MaxOpenConnections,
 		OpenConnections:    stats.OpenConnections,
-		InUseConnections:  stats.InUse,
-		IdleConnections:   stats.Idle,
-		WaitCount:         stats.WaitCount,
-		WaitDuration:      stats.WaitDuration.Nanoseconds(),
-		MaxIdleClosed:     stats.MaxIdleClosed,
-		MaxLifetimeClosed: stats.MaxLifetimeClosed,
+		InUseConnections:   stats.InUse,
+		IdleConnections:    stats.Idle,
+		WaitCount:          stats.WaitCount,
+		WaitDuration:       stats.WaitDuration.Nanoseconds(),
+		MaxIdleClosed:      stats.MaxIdleClosed,
+		MaxLifetimeClosed:  stats.MaxLifetimeClosed,
 	}
 }
 
@@ -221,7 +221,7 @@ func (r *postgresResult) RowsAffected() (int64, error) {
 
 // postgresTransaction wraps sql.Tx.
 type postgresTransaction struct {
-	tx          *sql.Tx
+	tx           *sql.Tx
 	queryTimeout time.Duration
 }
 
