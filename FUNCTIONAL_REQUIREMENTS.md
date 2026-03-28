@@ -153,3 +153,83 @@ FR IDs follow the pattern `FR-{CAT}-{NNN}` where CAT is the package category abb
 | FR-CONT-002 | `contracts/ports/outbound` SHALL define driven port interfaces (Repository, Cache, EventPublisher, Secrets) | E6.1 | Implemented |
 | FR-CONT-003 | `contracts/models` SHALL define domain event and model types shared across adapters | E6.2 | Implemented |
 | FR-CONT-004 | No implementation code (non-interface, non-struct) SHALL exist in the `contracts/` tree | E6.1 | Implemented |
+
+---
+
+## FR-SEC — Secrets Management (`secrets/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-SEC-001 | `SecretsManager.Get(ctx, key)` SHALL return the secret value or `ErrSecretNotFound` when the key does not exist; it SHALL NOT return an empty string for missing secrets | E4.3 | Implemented |
+| FR-SEC-002 | The backend SHALL be selected from `Config{Backend}` accepting values `"vault"`, `"aws"`, and `"env"` | E4.3 | Implemented |
+| FR-SEC-003 | The Vault adapter SHALL authenticate via the Vault HTTP API token and retrieve secrets from the KV v2 secrets engine | E4.3 | Implemented |
+| FR-SEC-004 | The AWS adapter SHALL use `aws-sdk-go-v2/service/secretsmanager` and resolve credentials from the default credential chain | E4.3 | Implemented |
+| FR-SEC-005 | The env adapter SHALL read secrets from process environment variables and return `ErrSecretNotFound` for unset variables | E4.3 | Implemented |
+
+---
+
+## FR-WEBH — Webhook Infrastructure (`webhook/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-WEBH-001 | `Delivery.Send(ctx, event)` SHALL POST a JSON-serialized `WebhookEvent` to the subscriber URL with `Content-Type: application/json` | E6.1 | Implemented |
+| FR-WEBH-002 | Each outgoing request SHALL include an `X-Phenotype-Signature` header with value `sha256=<hex>` computed over the raw request body using HMAC-SHA256 with the subscriber secret | E6.1 | Implemented |
+| FR-WEBH-003 | Failed deliveries SHALL be retried up to `Config.MaxAttempts` times with exponential backoff | E6.1 | Implemented |
+| FR-WEBH-004 | `Verify(secret, payload []byte, signature string) bool` SHALL perform constant-time HMAC-SHA256 comparison | E6.2 | Implemented |
+| FR-WEBH-005 | `Verify` SHALL return false for signatures that do not carry the `sha256=` prefix | E6.2 | Implemented |
+
+---
+
+## FR-MIG — Schema Migrations (`migrations/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-MIG-001 | `Runner.Up(ctx)` SHALL apply all pending migrations in ascending version order | E7.1 | Implemented |
+| FR-MIG-002 | `Runner.Down(ctx, steps int)` SHALL roll back the specified number of applied migrations in descending order | E7.1 | Implemented |
+| FR-MIG-003 | Applied migration versions SHALL be tracked in a `schema_migrations` table; already-applied versions SHALL be skipped | E7.1 | Implemented |
+| FR-MIG-004 | Each migration SHALL execute inside a database transaction; a failure SHALL roll back the transaction and halt the run with the migration version in the error | E7.1 | Implemented |
+
+---
+
+## FR-REPO — Repository Pattern (`repository/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-REPO-001 | `Repository[T, ID].FindByID(ctx, id)` SHALL return `ErrNotFound` when no row matches the given ID | E8.1 | Implemented |
+| FR-REPO-002 | `Repository[T, ID].Save(ctx, entity)` SHALL upsert via INSERT ... ON CONFLICT UPDATE | E8.1 | Implemented |
+| FR-REPO-003 | `Repository[T, ID].Delete(ctx, id)` SHALL be idempotent — deleting a non-existent ID SHALL NOT return an error | E8.1 | Implemented |
+| FR-REPO-004 | All repository methods SHALL accept `context.Context` as the first argument for query timeout and tracing propagation | E8.1 | Implemented |
+
+---
+
+## FR-ALRT — Alerting Rules (`alerting/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-ALRT-001 | `Rule{Name, Metric, Operator, Threshold, Severity}` SHALL compare a numeric fact against the threshold using one of the operators: `gt`, `lt`, `gte`, `lte`, `eq` | E9.1 | Implemented |
+| FR-ALRT-002 | `RuleEngine.Evaluate(ctx, facts map[string]float64)` SHALL return one `Alert` per violated rule | E9.1 | Implemented |
+| FR-ALRT-003 | `Alert{Rule, Value, Severity, FiredAt}` SHALL be serializable to JSON | E9.1 | Implemented |
+| FR-ALRT-004 | Facts missing from the provided map SHALL NOT cause a panic; the rule SHALL be evaluated as non-violated when the fact is absent | E9.1 | Implemented |
+
+---
+
+## FR-EMBD — AI Embeddings Plugin (`plugins/embeddings/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-EMBD-001 | `Registry.Register(name string, provider Provider)` SHALL register an embedding provider under the given name | E10.1 | Implemented |
+| FR-EMBD-002 | `Registry.Get(name string)` SHALL return `ErrProviderNotFound` for unknown provider names | E10.1 | Implemented |
+| FR-EMBD-003 | `Provider.Embed(ctx, texts []string) ([][]float64, error)` SHALL return one embedding vector per input text | E10.1 | Implemented |
+| FR-EMBD-004 | The OpenAI provider SHALL call the `/v1/embeddings` API endpoint with configurable model name and API key | E10.1 | Implemented |
+| FR-EMBD-005 | The Ollama provider SHALL call the local Ollama HTTP API at a configurable base URL with configurable model name | E10.1 | Implemented |
+
+---
+
+## FR-CI — CI/CD Pipeline Utilities (`ci/`)
+
+| ID | SHALL Statement | Traces To | Status |
+|----|-----------------|-----------|--------|
+| FR-CI-001 | `Pipeline.AddStage(stage *Stage)` SHALL append a stage with `Name`, `Commands []string`, `Env map[string]string`, and `Timeout time.Duration` | E11.1 | Implemented |
+| FR-CI-002 | `Pipeline.Run(ctx)` SHALL execute stages sequentially; the first stage failure SHALL halt the run and return the stage name and underlying error | E11.1 | Implemented |
+| FR-CI-003 | A per-stage `Timeout` SHALL be enforced via context deadline derived from the parent context | E11.1 | Implemented |
+| FR-CI-004 | Environment variables from `Stage.Env` SHALL be merged into the subprocess environment without overwriting inherited variables unless keys collide | E11.1 | Implemented |
