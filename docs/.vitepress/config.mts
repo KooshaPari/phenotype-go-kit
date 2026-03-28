@@ -1,14 +1,27 @@
-import { withMermaid } from 'vitepress-plugin-mermaid'
+import { defineConfig } from 'vitepress'
 
-export default withMermaid({
+const isPagesBuild = process.env.GITHUB_ACTIONS === 'true' || process.env.GITHUB_PAGES === 'true'
+const repoName = process.env.GITHUB_REPOSITORY?.split('/')[1] || 'phenotype-go-kit'
+const docsBase = isPagesBuild ? `/${repoName}/` : '/'
+
+export default defineConfig({
   title: 'phenotype-go-kit',
-  description: 'Shared Go toolkit for the Phenotype ecosystem — utilities, middleware, and infrastructure primitives.',
-  appearance: 'dark',
+  description: 'Go infrastructure toolkit extracted from the Phenotype ecosystem',
+  lang: 'en-US',
+  base: docsBase,
   lastUpdated: true,
+  cleanUrls: true,
   themeConfig: {
-    nav: [{ text: 'Home', link: '/' }],
-    sidebar: [],
-    search: { provider: 'local' },
+    siteTitle: 'phenotype-go-kit',
+    nav: [{ text: 'Guide', link: '/guide/' }],
+    sidebar: {
+      '/guide/': [
+        { text: 'Guide', items: [{ text: 'Getting Started', link: '/guide/' }] }
+      ]
+    },
+    socialLinks: [{ icon: 'github', link: `https://github.com/KooshaPari/${repoName}` }],
+    search: { provider: 'local' }
   },
-  mermaid: { theme: 'dark' },
+  markdown: { lineNumbers: true },
+  ignoreDeadLinks: true
 })
