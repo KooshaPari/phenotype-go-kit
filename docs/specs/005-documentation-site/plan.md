@@ -17,6 +17,7 @@
 - SEO
 
 ## Verification
+
 - Site deploys
 - All links work
 - Search functional
