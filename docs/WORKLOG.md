@@ -7,7 +7,7 @@ Repo: `phenotype-go-kit`
 | Lane | Branch | Status | Notes |
 | --- | --- | --- | --- |
 | Docs site foundation | `chore/add-vitepress` | Active | VitePress bootstrap, guide/index structure, and package-level docs site setup. |
-| Spec docs lane | `docs/add-spec-docs` | Active | Separate worktree remains active for ongoing docs/spec consolidation. |
+| Spec docs expansion | `docs/add-spec-docs` | Active | Expand PRD sections for secrets, webhooks, migrations, repository, alerting, embeddings, and CI pipeline. |
 
 ## Archived history
 
@@ -18,7 +18,7 @@ Repo: `phenotype-go-kit`
 ## Current intent
 
 1. Keep the docs-site foundation focused on VitePress setup and docs navigation.
-2. Treat the spec-docs lane as a separate active branch unless that lane is explicitly resumed here.
+2. Keep the spec-docs lane focused on completing the missing PRD sections.
 3. Keep kitty-specs migration closed unless a regression appears in docs/spec structure.
 
 ## Files in scope
@@ -27,4 +27,10 @@ Repo: `phenotype-go-kit`
 - `docs/guide/index.md`
 - `docs/index.md`
 - `docs/package.json`
+- `PRD.md`
 
+## Open items
+
+- Validate that each missing FR section is described clearly enough for downstream implementation work.
+- Keep the spec-docs lane as the canonical place for doc/spec content until the feature set is complete.
+- Decide whether the lane is ready to be published as a draft PR or should remain local until the PRD is complete.
