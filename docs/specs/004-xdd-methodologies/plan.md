@@ -15,6 +15,7 @@
 - Code review checklist
 
 ## Verification
+
 - Tests precede code
 - Docs match practice
 - Examples executable

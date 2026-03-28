@@ -15,11 +15,13 @@ VitePress-based documentation site for project documentation.
 ## Requirements
 
 ### Past Work (Completed)
+
 - VitePress setup
 - Theme configuration
 - Initial docs structure
 
 ### Future Work
+
 - More documentation
 - API docs generation
 - Search optimization

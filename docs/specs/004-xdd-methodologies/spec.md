@@ -15,12 +15,14 @@ Implementation of xDD (TDD/SDD/BDD) practices and documentation for the project.
 ## Requirements
 
 ### Past Work (Completed)
+
 - TDD practices documented
 - SDD documentation
 - BDD scenario examples
 - Best practices guide
 
 ### Future Work
+
 - More BDD scenarios
 - Test pattern library
 - Training materials
