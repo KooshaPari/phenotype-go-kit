@@ -16,16 +16,10 @@ All work MUST be tracked in AgilePlus:
 
 ## Work Requirements
 
-1. **Check for AgilePlus spec before implementing**
-2. **Update work package status as work progresses**
+1. **Check for AgilePlus spec before implementing** (`repos/AgilePlus/scripts/list-features.sh` or `repos/AgilePlus/kitty-specs/<slug>/`).
+2. **Track delivery** with `agileplus validate --feature <slug>`, `plan`, `implement`, `queue list`, and `cycle list` as appropriate.
 3. **No code without corresponding AgilePlus spec**
 
 ## UTF-8 Encoding
 
-All markdown files must use UTF-8. Avoid smart quotes, em-dashes, and special characters.
-
-```bash
-# Validate encoding (in AgilePlus repo)
-cd /Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus
-agileplus validate-encoding --all --fix
-```
+All markdown files must use UTF-8. Avoid smart quotes, em-dashes, and special characters where they break tooling. There is no `agileplus validate-encoding` in the current CLI; rely on editor and pre-commit.

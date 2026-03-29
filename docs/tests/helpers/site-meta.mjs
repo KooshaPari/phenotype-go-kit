@@ -1,1 +1,1 @@
-export { createSiteMeta } from '../../.vitepress/site-meta.mjs'
+export { createSiteMeta } from '../../.vitepress/site-meta.mjs';

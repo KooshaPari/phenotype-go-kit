@@ -1,3 +1,36 @@
 # Worklog
 
-This lane has been consolidated into [docs/WORKLOG.md](docs/WORKLOG.md).
+**This project is managed through AgilePlus.**
+
+## AgilePlus Tracking
+
+All feature work is tracked in AgilePlus:
+- Reference: `/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus`
+- CLI: `agileplus` (run from AgilePlus directory)
+
+## Quick Commands
+
+```bash
+cd /Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus
+
+./scripts/list-features.sh
+agileplus queue list
+agileplus cycle list
+agileplus specify [--feature <slug>] [--from-file spec.md] [--force]
+agileplus validate --feature <slug>
+agileplus plan --feature <slug>
+agileplus implement --feature <slug>
+```
+
+## Current Work
+
+See AgilePlus database for current work status:
+```
+/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus/.agileplus/agileplus.db
+```
+
+## Work History
+
+Historical work is documented in:
+- AgilePlus worklog: `/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus/.work-audit/worklog.md`
+- Git history for merged work

@@ -1,4 +1,17 @@
 import assert from 'node:assert/strict'
+import test from 'node:test'
 import { createSiteMeta } from '../../.vitepress/site-meta.mjs'
-Deno.test('createSiteMeta is a function', () => { assert.strictEqual(typeof createSiteMeta, 'function') })
-Deno.test('createSiteMeta returns an object', () => { const m = createSiteMeta({ base:'/' }); assert.strictEqual(typeof m,'object') })
+
+test('site meta exports createSiteMeta', () => {
+  const meta = createSiteMeta({ base: '/' })
+  assert.ok(meta.title)
+  assert.ok(meta.themeConfig)
+  assert.ok(meta.themeConfig.nav)
+  assert.ok(Array.isArray(meta.themeConfig.nav))
+})
+
+test('site meta nav has expected items', () => {
+  const meta = createSiteMeta({ base: '/' })
+  const links = meta.themeConfig.nav.map(n => n.link)
+  assert.ok(links.length > 0, 'nav should not be empty')
+})
