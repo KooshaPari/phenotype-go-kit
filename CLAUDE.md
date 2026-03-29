@@ -10,9 +10,9 @@ All work MUST be tracked in AgilePlus:
 
 ## Work Requirements
 
-1. **Check for AgilePlus spec before implementing**
-2. **Create spec for new work**: `agileplus specify --title "<feature>" --description "<desc>"`
-3. **Update work package status**: `agileplus status <feature-id> --wp <wp-id> --state <state>`
+1. **Check for AgilePlus spec before implementing** (`repos/AgilePlus/scripts/list-features.sh` or `repos/AgilePlus/kitty-specs/<slug>/`).
+2. **Create or revise spec**: `agileplus specify [--feature <kebab-slug>] [--from-file path.md] [--force]`
+3. **Delivery**: `agileplus validate --feature <slug>`, `agileplus plan --feature <slug>`, `agileplus implement --feature <slug>`, and `agileplus queue list` / `agileplus cycle list` as needed.
 4. **No code without corresponding AgilePlus spec**
 
 ---
