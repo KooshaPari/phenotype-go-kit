@@ -6,6 +6,7 @@
     "docs:preview": "vitepress preview"
   },
   "devDependencies": {
-    "vitepress": "^1.6.3"
+    "vitepress": "^1.6.3",
+    "@playwright/test": "^1.49.0"
   }
 }
