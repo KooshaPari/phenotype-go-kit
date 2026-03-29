@@ -34,3 +34,10 @@ See AgilePlus database for current work status:
 Historical work is documented in:
 - AgilePlus worklog: `/Users/kooshapari/CodeProjects/Phenotype/repos/AgilePlus/.work-audit/worklog.md`
 - Git history for merged work
+
+## Task Sources
+
+Reference docs to keep aligned with AgilePlus tracking:
+- /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-go-kit/docs/index.md
+- /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-go-kit/docs/specs/004-xdd-methodologies/plan.md
+- /Users/kooshapari/CodeProjects/Phenotype/repos/phenotype-go-kit/docs/specs/005-documentation-site/plan.md

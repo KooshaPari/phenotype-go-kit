@@ -8,3 +8,9 @@ hero:
       text: Get Started
       link: /guide/
 ---
+
+## Start Here
+
+- [Worklog](./WORKLOG.md)
+- [Guide](./guide/)
+- [Architecture Decisions](./adr/)
