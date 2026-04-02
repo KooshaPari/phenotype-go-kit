@@ -37,7 +37,7 @@ func (k *KubernetesDeployer) Apply(ctx context.Context, manifest string) error {
 	cmd.Stdin = strings.NewReader(manifest)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	return cmd.Run()
 }
 
@@ -76,7 +76,7 @@ func (k *KubernetesDeployer) Rollback(ctx context.Context) error {
 	cmd := exec.CommandContext(ctx, "kubectl", "rollout", "undo", "deployment/phenotype-app", "-n", k.config.Namespace)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	return cmd.Run()
 }
 
@@ -85,7 +85,7 @@ func (k *KubernetesDeployer) Status(ctx context.Context) (string, error) {
 	cmd := exec.CommandContext(ctx, "kubectl", "rollout", "status", "deployment/phenotype-app", "-n", k.config.Namespace)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	return "", cmd.Run()
 }
 
@@ -115,30 +115,30 @@ func (h *HelmDeployer) SetValue(key, value string) {
 // Install installs a Helm chart.
 func (h *HelmDeployer) Install(ctx context.Context, releaseName string) error {
 	args := []string{"install", releaseName, h.chartPath, "-n", h.namespace}
-	
+
 	for k, v := range h.values {
 		args = append(args, "--set", fmt.Sprintf("%s=%s", k, v))
 	}
-	
+
 	cmd := exec.CommandContext(ctx, "helm", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	return cmd.Run()
 }
 
 // Upgrade upgrades a Helm release.
 func (h *HelmDeployer) Upgrade(ctx context.Context, releaseName string) error {
 	args := []string{"upgrade", releaseName, h.chartPath, "-n", h.namespace}
-	
+
 	for k, v := range h.values {
 		args = append(args, "--set", fmt.Sprintf("%s=%s", k, v))
 	}
-	
+
 	cmd := exec.CommandContext(ctx, "helm", args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	return cmd.Run()
 }
 
@@ -147,7 +147,7 @@ func (h *HelmDeployer) Rollback(ctx context.Context, releaseName string) error {
 	cmd := exec.CommandContext(ctx, "helm", "rollback", releaseName, "-n", h.namespace)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	
+
 	return cmd.Run()
 }
 
@@ -166,7 +166,7 @@ func (h *HelmDeployer) List(ctx context.Context) ([]ReleaseInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	
+
 	// Simplified - would need JSON parsing
 	var releases []ReleaseInfo
 	return releases, nil

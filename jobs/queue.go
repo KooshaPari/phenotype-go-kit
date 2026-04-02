@@ -16,10 +16,10 @@ type Queue struct {
 	interval time.Duration
 
 	// In production, replace with Redis/DB-backed queue
-	jobChan   chan *Job
-	stopChan  chan struct{}
-	wg        sync.WaitGroup
-	logger    *slog.Logger
+	jobChan  chan *Job
+	stopChan chan struct{}
+	wg       sync.WaitGroup
+	logger   *slog.Logger
 }
 
 // QueueConfig holds configuration for the job queue.
@@ -37,13 +37,13 @@ func NewQueue(cfg QueueConfig, handlers Registry, logger *slog.Logger) *Queue {
 		cfg.Interval = 100 * time.Millisecond
 	}
 	return &Queue{
-		jobs:      make(map[string]*Job),
-		handlers:  handlers,
-		workers:   cfg.Workers,
-		interval:  cfg.Interval,
-		jobChan:   make(chan *Job, 1000),
-		stopChan:  make(chan struct{}),
-		logger:    logger,
+		jobs:     make(map[string]*Job),
+		handlers: handlers,
+		workers:  cfg.Workers,
+		interval: cfg.Interval,
+		jobChan:  make(chan *Job, 1000),
+		stopChan: make(chan struct{}),
+		logger:   logger,
 	}
 }
 

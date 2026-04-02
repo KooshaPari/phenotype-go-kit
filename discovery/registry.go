@@ -39,14 +39,14 @@ func New() *Registry {
 func (r *Registry) Register(service *Service) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	if r.services[service.Name] == nil {
 		r.services[service.Name] = make(map[string]*Service)
 	}
-	
+
 	service.LastSeen = time.Now()
 	r.services[service.Name][service.ID] = service
-	
+
 	r.logger.Info("service registered", "name", service.Name, "id", service.ID, "address", service.Address)
 	return nil
 }
@@ -55,11 +55,11 @@ func (r *Registry) Register(service *Service) error {
 func (r *Registry) Deregister(name, id string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	if r.services[name] == nil {
 		return fmt.Errorf("service not found: %s", name)
 	}
-	
+
 	delete(r.services[name], id)
 	r.logger.Info("service deregistered", "name", name, "id", id)
 	return nil
@@ -69,19 +69,19 @@ func (r *Registry) Deregister(name, id string) error {
 func (r *Registry) Discover(name string) []*Service {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	services, ok := r.services[name]
 	if !ok {
 		return nil
 	}
-	
+
 	result := make([]*Service, 0)
 	for _, s := range services {
 		if s.Healthy {
 			result = append(result, s)
 		}
 	}
-	
+
 	return result
 }
 
@@ -89,12 +89,12 @@ func (r *Registry) Discover(name string) []*Service {
 func (r *Registry) GetService(name, id string) (*Service, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	services, ok := r.services[name]
 	if !ok {
 		return nil, false
 	}
-	
+
 	svc, ok := services[id]
 	return svc, ok
 }
@@ -103,17 +103,17 @@ func (r *Registry) GetService(name, id string) (*Service, bool) {
 func (r *Registry) Heartbeat(name, id string) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	services, ok := r.services[name]
 	if !ok {
 		return fmt.Errorf("service not found: %s", name)
 	}
-	
+
 	svc, ok := services[id]
 	if !ok {
 		return fmt.Errorf("service instance not found: %s", id)
 	}
-	
+
 	svc.LastSeen = time.Now()
 	return nil
 }
@@ -122,17 +122,17 @@ func (r *Registry) Heartbeat(name, id string) error {
 func (r *Registry) SetHealthy(name, id string, healthy bool) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	
+
 	services, ok := r.services[name]
 	if !ok {
 		return fmt.Errorf("service not found: %s", name)
 	}
-	
+
 	svc, ok := services[id]
 	if !ok {
 		return fmt.Errorf("service instance not found: %s", id)
 	}
-	
+
 	svc.Healthy = healthy
 	return nil
 }
@@ -141,7 +141,7 @@ func (r *Registry) SetHealthy(name, id string, healthy bool) error {
 func (r *Registry) ListServices() map[string][]*Service {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	
+
 	result := make(map[string][]*Service)
 	for name, services := range r.services {
 		result[name] = make([]*Service, 0, len(services))
@@ -149,7 +149,7 @@ func (r *Registry) ListServices() map[string][]*Service {
 			result[name] = append(result[name], s)
 		}
 	}
-	
+
 	return result
 }
 
@@ -175,7 +175,7 @@ func NewHealthChecker(registry *Registry, interval, timeout time.Duration) *Heal
 func (hc *HealthChecker) Start(ctx context.Context) {
 	ticker := time.NewTicker(hc.interval)
 	defer ticker.Stop()
-	
+
 	for {
 		select {
 		case <-ctx.Done():
@@ -188,23 +188,23 @@ func (hc *HealthChecker) Start(ctx context.Context) {
 
 func (hc *HealthChecker) checkServices() {
 	services := hc.registry.ListServices()
-	
+
 	for _, instances := range services {
 		for _, svc := range instances {
 			healthURL := fmt.Sprintf("http://%s:%d/health", svc.Address, svc.Port)
-			
+
 			ctx, cancel := context.WithTimeout(context.Background(), hc.timeout)
 			defer cancel()
-			
+
 			req, _ := http.NewRequestWithContext(ctx, "GET", healthURL, nil)
 			resp, err := hc.client.Do(req)
-			
+
 			if err != nil || resp.StatusCode != http.StatusOK {
 				hc.registry.SetHealthy(svc.Name, svc.ID, false)
 				continue
 			}
 			resp.Body.Close()
-			
+
 			hc.registry.SetHealthy(svc.Name, svc.ID, true)
 		}
 	}
@@ -217,9 +217,9 @@ type LoadBalancer interface {
 
 // RoundRobinLB is a round-robin load balancer.
 type RoundRobinLB struct {
-	registry  *Registry
-	counters  map[string]int
-	mu        sync.Mutex
+	registry *Registry
+	counters map[string]int
+	mu       sync.Mutex
 }
 
 // NewRoundRobinLB creates a round-robin load balancer.
@@ -236,11 +236,11 @@ func (lb *RoundRobinLB) Next(serviceName string) (*Service, error) {
 	if len(services) == 0 {
 		return nil, fmt.Errorf("no healthy instances for service: %s", serviceName)
 	}
-	
+
 	lb.mu.Lock()
 	count := lb.counters[serviceName]
 	lb.counters[serviceName] = (count + 1) % len(services)
 	lb.mu.Unlock()
-	
+
 	return services[count], nil
 }

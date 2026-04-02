@@ -33,7 +33,7 @@ func (s *State[T]) Set(value T) {
 	s.mu.Lock()
 	s.value = value
 	s.mu.Unlock()
-	
+
 	s.notify()
 }
 
@@ -50,7 +50,7 @@ func (s *State[T]) Subscribe() <-chan T {
 func (s *State[T]) Unsubscribe(ch <-chan T) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	
+
 	for i, listener := range s.listeners {
 		if listener == ch {
 			s.listeners = append(s.listeners[:i], s.listeners[i+1:]...)
@@ -64,7 +64,7 @@ func (s *State[T]) notify() {
 	listeners := make([]chan T, len(s.listeners))
 	copy(listeners, s.listeners)
 	s.mu.RUnlock()
-	
+
 	for _, ch := range listeners {
 		select {
 		case ch <- s.value:
@@ -98,12 +98,12 @@ func (s *Store[T]) Dispatch(ctx context.Context, action string, params ...interf
 	if !ok {
 		return nil
 	}
-	
+
 	newState, err := handler(ctx, s.state.Get(), params...)
 	if err != nil {
 		return err
 	}
-	
+
 	s.state.Set(newState)
 	return nil
 }
@@ -141,7 +141,7 @@ func (s *ReducersStore[T]) Dispatch(action string, payload interface{}) {
 	if !ok {
 		return
 	}
-	
+
 	newState := reducer(s.state.Get(), payload)
 	s.state.Set(newState)
 }

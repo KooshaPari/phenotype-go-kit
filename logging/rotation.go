@@ -35,23 +35,23 @@ func DefaultRotationPolicy() RotationPolicy {
 
 // RetentionPolicy defines log retention rules.
 type RetentionPolicy struct {
-	KeepDays          int      `yaml:"keep_days" json:"keep_days"`
-	KeepBackups       int      `yaml:"keep_backups" json:"keep_backups"`
-	CompressOldLogs   bool     `yaml:"compress_old_logs" json:"compress_old_logs"`
-	ExcludedPatterns  []string `yaml:"excluded_patterns" json:"excluded_patterns"` // e.g., ["debug.log"]
+	KeepDays         int      `yaml:"keep_days" json:"keep_days"`
+	KeepBackups      int      `yaml:"keep_backups" json:"keep_backups"`
+	CompressOldLogs  bool     `yaml:"compress_old_logs" json:"compress_old_logs"`
+	ExcludedPatterns []string `yaml:"excluded_patterns" json:"excluded_patterns"` // e.g., ["debug.log"]
 }
 
 // LogManager handles log file management.
 type LogManager struct {
-	config        LogRotationConfig
+	config          LogRotationConfig
 	retentionPolicy RetentionPolicy
 }
 
 // NewLogManager creates a new log manager.
 func NewLogManager(cfg LogRotationConfig, retention RetentionPolicy) *LogManager {
 	return &LogManager{
-		config:           cfg,
-		retentionPolicy:  retention,
+		config:          cfg,
+		retentionPolicy: retention,
 	}
 }
 
@@ -116,10 +116,10 @@ func extractDate(name string) string {
 
 // LogFileInfo represents information about a log file.
 type LogFileInfo struct {
-	Name        string
-	Path        string
-	SizeBytes   int64
-	ModTime     time.Time
+	Name         string
+	Path         string
+	SizeBytes    int64
+	ModTime      time.Time
 	IsCompressed bool
 }
 

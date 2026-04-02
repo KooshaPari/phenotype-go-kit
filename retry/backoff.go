@@ -9,11 +9,11 @@ import (
 
 // Config holds retry configuration.
 type Config struct {
-	MaxAttempts int
+	MaxAttempts  int
 	InitialDelay time.Duration
-	MaxDelay    time.Duration
-	Multiplier  float64
-	Jitter      bool
+	MaxDelay     time.Duration
+	Multiplier   float64
+	Jitter       bool
 }
 
 // DefaultConfig returns default retry configuration.
@@ -34,23 +34,23 @@ type RetryFunc func(ctx context.Context) error
 func Do(ctx context.Context, cfg Config, fn RetryFunc) error {
 	var lastErr error
 	delay := cfg.InitialDelay
-	
+
 	for attempt := 1; attempt <= cfg.MaxAttempts; attempt++ {
 		if err := fn(ctx); err != nil {
 			lastErr = err
-			
+
 			// Check if we should stop
 			if attempt >= cfg.MaxAttempts {
 				break
 			}
-			
+
 			// Check for context cancellation
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			default:
 			}
-			
+
 			// Log retry attempt
 			slog.Default().Debug("retry attempt",
 				"attempt", attempt,
@@ -58,19 +58,19 @@ func Do(ctx context.Context, cfg Config, fn RetryFunc) error {
 				"delay", delay,
 				"error", err,
 			)
-			
+
 			// Wait before next attempt
 			waitDuration := delay
 			if cfg.Jitter {
 				waitDuration = withJitter(delay)
 			}
-			
+
 			select {
 			case <-ctx.Done():
 				return ctx.Err()
 			case <-time.After(waitDuration):
 			}
-			
+
 			// Increase delay
 			delay = time.Duration(float64(delay) * cfg.Multiplier)
 			if delay > cfg.MaxDelay {
@@ -80,7 +80,7 @@ func Do(ctx context.Context, cfg Config, fn RetryFunc) error {
 			return nil
 		}
 	}
-	
+
 	return errors.New("max retries exceeded: " + lastErr.Error())
 }
 
@@ -97,33 +97,33 @@ func WithRetry(cfg Config) func(RetryFunc) RetryFunc {
 func DoWithResult(ctx context.Context, cfg Config, fn func() (interface{}, error)) (interface{}, error) {
 	var lastErr error
 	delay := cfg.InitialDelay
-	
+
 	for attempt := 1; attempt <= cfg.MaxAttempts; attempt++ {
 		result, err := fn()
 		if err != nil {
 			lastErr = err
-			
+
 			if attempt >= cfg.MaxAttempts {
 				break
 			}
-			
+
 			select {
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			default:
 			}
-			
+
 			waitDuration := delay
 			if cfg.Jitter {
 				waitDuration = withJitter(delay)
 			}
-			
+
 			select {
 			case <-ctx.Done():
 				return nil, ctx.Err()
 			case <-time.After(waitDuration):
 			}
-			
+
 			delay = time.Duration(float64(delay) * cfg.Multiplier)
 			if delay > cfg.MaxDelay {
 				delay = cfg.MaxDelay
@@ -132,7 +132,7 @@ func DoWithResult(ctx context.Context, cfg Config, fn func() (interface{}, error
 			return result, nil
 		}
 	}
-	
+
 	return nil, errors.New("max retries exceeded: " + lastErr.Error())
 }
 

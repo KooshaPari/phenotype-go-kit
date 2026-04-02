@@ -53,7 +53,7 @@ func (f *Form) SetValue(name string, value interface{}) {
 func (f *Form) Validate() bool {
 	f.Valid = true
 	f.Errors = make(map[string]string)
-	
+
 	for name, field := range f.Fields {
 		if field.Required {
 			if field.Value == nil || field.Value == "" {
@@ -63,10 +63,10 @@ func (f *Form) Validate() bool {
 				continue
 			}
 		}
-		
+
 		field.Valid = true
 	}
-	
+
 	return f.Valid
 }
 
@@ -95,7 +95,7 @@ func EmailRule() ValidationRule {
 		if !ok {
 			return nil
 		}
-		
+
 		pattern := `^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`
 		matched, _ := regexp.MatchString(pattern, s)
 		if !matched {
@@ -112,7 +112,7 @@ func MinLengthRule(min int) ValidationRule {
 		if !ok {
 			return nil
 		}
-		
+
 		if len(s) < min {
 			return fmt.Errorf("must be at least %d characters", min)
 		}
@@ -127,7 +127,7 @@ func MaxLengthRule(max int) ValidationRule {
 		if !ok {
 			return nil
 		}
-		
+
 		if len(s) > max {
 			return fmt.Errorf("must be at most %d characters", max)
 		}
@@ -143,7 +143,7 @@ func PatternRule(pattern, message string) ValidationRule {
 		if !ok {
 			return nil
 		}
-		
+
 		if !re.MatchString(s) {
 			return fmt.Errorf("%s", message)
 		}

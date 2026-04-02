@@ -42,10 +42,10 @@ func (a *ArchitectureDoc) AddSection(title string, level int, content string) {
 // GenerateMarkdown creates Markdown documentation.
 func (a *ArchitectureDoc) GenerateMarkdown() string {
 	var buf bytes.Buffer
-	
+
 	buf.WriteString(fmt.Sprintf("# %s\n\n", a.Title))
 	buf.WriteString(fmt.Sprintf("*Last Updated: %s*\n\n", a.LastUpdated.Format("2006-01-02")))
-	
+
 	for _, s := range a.Sections {
 		level := ""
 		for i := 0; i < s.Level; i++ {
@@ -53,18 +53,18 @@ func (a *ArchitectureDoc) GenerateMarkdown() string {
 		}
 		buf.WriteString(fmt.Sprintf("%s %s\n\n%s\n\n", level, s.Title, s.Content))
 	}
-	
+
 	return buf.String()
 }
 
 // ArchitectureOverview returns the main architecture document.
 func ArchitectureOverview() *ArchitectureDoc {
 	doc := NewArchitectureDoc("Phenotype Go Kit Architecture")
-	
+
 	doc.AddSection("Overview", 1, "Phenotype Go Kit is a comprehensive backend infrastructure library providing observability, database scaling, API gateway, microservices communication, and CI/CD pipeline support.")
-	
+
 	doc.AddSection("System Architecture", 2, "The system follows hexagonal architecture principles with clear separation between domain, application, and infrastructure layers.")
-	
+
 	doc.AddSection("Core Components", 2, "")
 	doc.AddSection("Jobs", 3, "Background job processing with queue management, webhook delivery, and scheduled tasks.")
 	doc.AddSection("Observability", 3, "Structured logging, OpenTelemetry tracing, Prometheus metrics, and health checks.")
@@ -74,6 +74,6 @@ func ArchitectureOverview() *ArchitectureDoc {
 	doc.AddSection("Data Layer", 3, "Validation, transformation, and repository pattern implementations.")
 	doc.AddSection("Frontend", 3, "HTTP client, state management, form validation, and UI utilities.")
 	doc.AddSection("CI/CD", 3, "Pipeline definition, Docker configuration, Kubernetes/Helm deployment, and secrets management.")
-	
+
 	return doc
 }

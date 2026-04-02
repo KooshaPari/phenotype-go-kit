@@ -9,13 +9,13 @@ type FeatureStatus string
 
 const (
 	StatusDraft        FeatureStatus = "draft"
-	StatusSpecifying  FeatureStatus = "specifying"
-	StatusResearched  FeatureStatus = "researched"
-	StatusPlanned     FeatureStatus = "planned"
+	StatusSpecifying   FeatureStatus = "specifying"
+	StatusResearched   FeatureStatus = "researched"
+	StatusPlanned      FeatureStatus = "planned"
 	StatusImplementing FeatureStatus = "implementing"
-	StatusValidated   FeatureStatus = "validated"
-	StatusShipped     FeatureStatus = "shipped"
-	StatusArchived    FeatureStatus = "archived"
+	StatusValidated    FeatureStatus = "validated"
+	StatusShipped      FeatureStatus = "shipped"
+	StatusArchived     FeatureStatus = "archived"
 )
 
 // Feature represents a unit of work from idea to shipment.
@@ -88,8 +88,8 @@ type WPStatus string
 const (
 	WPStatusPlanned WPStatus = "planned"
 	WPStatusDoing   WPStatus = "doing"
-	WPStatusReview WPStatus = "review"
-	WPStatusDone   WPStatus = "done"
+	WPStatusReview  WPStatus = "review"
+	WPStatusDone    WPStatus = "done"
 )
 
 // GovernanceContract defines required evidence for state transitions.
@@ -138,11 +138,11 @@ type AuditEntry struct {
 	ID             string
 	FeatureID      string
 	TransitionType string
-	FromStatus    string
-	ToStatus      string
+	FromStatus     string
+	ToStatus       string
 	EvidenceRefs   []string
 	PreviousHash   string
-	Hash          string
-	Timestamp     time.Time
-	Actor         string
+	Hash           string
+	Timestamp      time.Time
+	Actor          string
 }

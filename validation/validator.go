@@ -15,8 +15,8 @@ type Validator struct {
 
 // Rule represents a validation rule.
 type Rule struct {
-	Name    string
-	Message string
+	Name     string
+	Message  string
 	Validate func(interface{}) bool
 }
 
@@ -35,54 +35,54 @@ func (v *Validator) AddRule(field string, rule Rule) {
 // Validate validates a struct.
 func (v *Validator) Validate(data interface{}) (map[string][]string, bool) {
 	errors := make(map[string][]string)
-	
+
 	rv := reflect.ValueOf(data)
 	if rv.Kind() == reflect.Ptr {
 		rv = rv.Elem()
 	}
-	
+
 	if rv.Kind() != reflect.Struct {
 		return nil, false
 	}
-	
+
 	rt := rv.Type()
-	
+
 	for fieldName, rules := range v.rules {
 		var fieldValue reflect.Value
 		var found bool
-		
+
 		for i := 0; i < rt.NumField(); i++ {
 			field := rt.Field(i)
 			jsonTag := field.Tag.Get("json")
 			fieldNameFromTag := strings.Split(jsonTag, ",")[0]
-			
+
 			if fieldNameFromTag == fieldName || field.Name == fieldName {
 				fieldValue = rv.Field(i)
 				found = true
 				break
 			}
 		}
-		
+
 		if !found {
 			continue
 		}
-		
+
 		fieldVal := fieldValue.Interface()
-		
+
 		for _, rule := range rules {
 			if !rule.Validate(fieldVal) {
 				errors[fieldName] = append(errors[fieldName], rule.Message)
 			}
 		}
 	}
-	
+
 	return errors, len(errors) == 0
 }
 
 // Common validation rules.
 var (
 	Required = Rule{
-		Name: "required",
+		Name:    "required",
 		Message: "is required",
 		Validate: func(v interface{}) bool {
 			if v == nil {
@@ -94,9 +94,9 @@ var (
 			return true
 		},
 	}
-	
+
 	Email = Rule{
-		Name: "email",
+		Name:    "email",
 		Message: "must be a valid email address",
 		Validate: func(v interface{}) bool {
 			s, ok := v.(string)

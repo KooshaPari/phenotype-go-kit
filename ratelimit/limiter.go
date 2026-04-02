@@ -35,9 +35,9 @@ func New(cfg Config) *RateLimiter {
 		requests: make(map[string]*clientTracker),
 		config:   cfg,
 	}
-	
+
 	go rl.cleanupLoop()
-	
+
 	return rl
 }
 
@@ -45,10 +45,10 @@ func New(cfg Config) *RateLimiter {
 func (rl *RateLimiter) Allow(key string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
-	
+
 	now := time.Now()
 	tracker, exists := rl.requests[key]
-	
+
 	if !exists {
 		rl.requests[key] = &clientTracker{
 			tokens:     float64(rl.config.BurstSize) - 1,
@@ -56,29 +56,29 @@ func (rl *RateLimiter) Allow(key string) bool {
 		}
 		return true
 	}
-	
+
 	// Check if blocked
 	if tracker.blocked && now.Before(tracker.blockExpiry) {
 		return false
 	}
-	
+
 	// Reset if enough time has passed
 	if now.Sub(tracker.lastUpdate) > rl.config.BlockDuration {
 		tracker.tokens = float64(rl.config.BurstSize)
 		tracker.blocked = false
 	}
-	
+
 	// Token bucket algorithm
 	elapsed := now.Sub(tracker.lastUpdate).Seconds()
 	refillAmount := elapsed * rl.config.RequestsPerSecond
 	tracker.tokens = min(tracker.tokens+refillAmount, float64(rl.config.BurstSize))
-	
+
 	if tracker.tokens >= 1 {
 		tracker.tokens--
 		tracker.lastUpdate = now
 		return true
 	}
-	
+
 	return false
 }
 
@@ -86,13 +86,13 @@ func (rl *RateLimiter) Allow(key string) bool {
 func (rl *RateLimiter) Block(key string) {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
-	
+
 	tracker, exists := rl.requests[key]
 	if !exists {
 		tracker = &clientTracker{}
 		rl.requests[key] = tracker
 	}
-	
+
 	tracker.blocked = true
 	tracker.blockExpiry = time.Now().Add(rl.config.BlockDuration)
 }
@@ -101,7 +101,7 @@ func (rl *RateLimiter) Block(key string) {
 func (rl *RateLimiter) Unblock(key string) {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
-	
+
 	if tracker, exists := rl.requests[key]; exists {
 		tracker.blocked = false
 	}
@@ -113,13 +113,13 @@ func (rl *RateLimiter) Middleware() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Use API key, IP, or user ID as key
 			key := getClientKey(r)
-			
+
 			if !rl.Allow(key) {
 				w.Header().Set("Retry-After", "1")
 				http.Error(w, "rate limit exceeded", http.StatusTooManyRequests)
 				return
 			}
-			
+
 			next.ServeHTTP(w, r)
 		})
 	}
@@ -128,7 +128,7 @@ func (rl *RateLimiter) Middleware() func(http.Handler) http.Handler {
 func (rl *RateLimiter) cleanupLoop() {
 	ticker := time.NewTicker(rl.config.CleanupInterval)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		rl.cleanup()
 	}
@@ -137,7 +137,7 @@ func (rl *RateLimiter) cleanupLoop() {
 func (rl *RateLimiter) cleanup() {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
-	
+
 	now := time.Now()
 	for key, tracker := range rl.requests {
 		if now.Sub(tracker.lastUpdate) > rl.config.BlockDuration*2 {
@@ -151,12 +151,12 @@ func getClientKey(r *http.Request) string {
 	if apiKey := r.Header.Get("X-API-Key"); apiKey != "" {
 		return "apikey:" + apiKey
 	}
-	
+
 	// Check for auth token
 	if auth := r.Header.Get("Authorization"); auth != "" {
 		return "auth:" + auth
 	}
-	
+
 	// Fall back to IP
 	return "ip:" + r.RemoteAddr
 }
@@ -166,7 +166,7 @@ func Headers(rl *RateLimiter) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			next.ServeHTTP(w, r)
-			
+
 			// Add rate limit headers
 			w.Header().Set("X-RateLimit-Limit", "100")
 			w.Header().Set("X-RateLimit-Remaining", "99")

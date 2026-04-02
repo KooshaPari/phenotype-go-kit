@@ -22,11 +22,11 @@ type Client struct {
 
 // Config holds API client configuration.
 type Config struct {
-	BaseURL         string
-	Timeout         time.Duration
-	RetryAttempts   int
-	RetryDelay      time.Duration
-	APIKey          string
+	BaseURL       string
+	Timeout       time.Duration
+	RetryAttempts int
+	RetryDelay    time.Duration
+	APIKey        string
 }
 
 // NewClient creates a new API client.
@@ -34,11 +34,11 @@ func NewClient(cfg Config) *Client {
 	client := &http.Client{
 		Timeout: cfg.Timeout,
 	}
-	
+
 	if cfg.Timeout == 0 {
 		client.Timeout = 30 * time.Second
 	}
-	
+
 	return &Client{
 		baseURL:    cfg.BaseURL,
 		httpClient: client,
@@ -95,7 +95,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, params map[
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if params != nil {
 		query := uri.Query()
 		for k, v := range params {
@@ -103,7 +103,7 @@ func (c *Client) doRequest(ctx context.Context, method, path string, params map[
 		}
 		uri.RawQuery = query.Encode()
 	}
-	
+
 	var bodyReader io.Reader
 	if body != nil {
 		data, err := json.Marshal(body)
@@ -112,37 +112,37 @@ func (c *Client) doRequest(ctx context.Context, method, path string, params map[
 		}
 		bodyReader = bytes.NewReader(data)
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, method, uri.String(), bodyReader)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	for k, v := range c.headers {
 		req.Header.Set(k, v)
 	}
-	
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	respBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	response := &Response{
 		StatusCode: resp.StatusCode,
 		Body:       respBody,
 		Headers:    resp.Header,
 	}
-	
+
 	if ct := resp.Header.Get("Content-Type"); ct == "application/json" {
 		_ = json.Unmarshal(respBody, &response.Data)
 	}
-	
+
 	return response, nil
 }
 

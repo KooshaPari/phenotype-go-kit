@@ -15,20 +15,20 @@ type Image struct {
 // ParseImage parses an image string.
 func ParseImage(s string) (*Image, error) {
 	parts := strings.Split(s, "/")
-	
+
 	nameParts := strings.Split(parts[len(parts)-1], ":")
-	
+
 	registry := ""
 	if len(parts) > 1 && !strings.Contains(parts[0], ":") {
 		registry = parts[0]
 	}
-	
+
 	name := nameParts[0]
 	tag := "latest"
 	if len(nameParts) > 1 {
 		tag = nameParts[1]
 	}
-	
+
 	return &Image{
 		Registry: registry,
 		Name:     name,
@@ -48,24 +48,24 @@ func (i *Image) String() string {
 
 // BuildConfig holds Docker build configuration.
 type BuildConfig struct {
-	Context       string
-	Dockerfile    string
-	ImageName     string
-	ImageTag      string
-	BuildArgs     map[string]string
-	Labels        map[string]string
-	NoCache       bool
-	Target        string
+	Context    string
+	Dockerfile string
+	ImageName  string
+	ImageTag   string
+	BuildArgs  map[string]string
+	Labels     map[string]string
+	NoCache    bool
+	Target     string
 }
 
 // GetBuildArgs converts build args to CLI args.
 func (c *BuildConfig) GetBuildArgs() []string {
 	var args []string
-	
+
 	for k, v := range c.BuildArgs {
 		args = append(args, "--build-arg", fmt.Sprintf("%s=%s", k, v))
 	}
-	
+
 	return args
 }
 
@@ -104,31 +104,31 @@ func (c *DockerComposeConfig) Generate() string {
 	var lines []string
 	lines = append(lines, "version: '"+c.Version+"'")
 	lines = append(lines, "services:")
-	
+
 	for name, svc := range c.Services {
 		lines = append(lines, "  "+name+":")
-		
+
 		if svc.Image != "" {
 			lines = append(lines, "    image: "+svc.Image)
 		}
 		if svc.Build != "" {
 			lines = append(lines, "    build: "+svc.Build)
 		}
-		
+
 		if len(svc.Ports) > 0 {
 			lines = append(lines, "    ports:")
 			for _, p := range svc.Ports {
 				lines = append(lines, "      - \""+p+"\"")
 			}
 		}
-		
+
 		if len(svc.Environment) > 0 {
 			lines = append(lines, "    environment:")
 			for k, v := range svc.Environment {
 				lines = append(lines, "      - "+k+"="+v)
 			}
 		}
-		
+
 		if len(svc.Volumes) > 0 {
 			lines = append(lines, "    volumes:")
 			for _, v := range svc.Volumes {
@@ -136,6 +136,6 @@ func (c *DockerComposeConfig) Generate() string {
 			}
 		}
 	}
-	
+
 	return strings.Join(lines, "\n")
 }

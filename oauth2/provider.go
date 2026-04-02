@@ -22,11 +22,11 @@ type Config struct {
 	ClientSecret string
 	RedirectURL  string
 	Scopes       []string
-	
+
 	AuthorizationURL string
 	TokenURL         string
 	UserInfoURL      string
-	
+
 	SigningKey string
 }
 
@@ -41,11 +41,11 @@ type TokenResponse struct {
 
 // UserInfo represents OAuth2 user info.
 type UserInfo struct {
-	ID            string `json:"sub"`
-	Email         string `json:"email"`
-	Name          string `json:"name"`
-	Picture       string `json:"picture"`
-	Locale        string `json:"locale"`
+	ID      string `json:"sub"`
+	Email   string `json:"email"`
+	Name    string `json:"name"`
+	Picture string `json:"picture"`
+	Locale  string `json:"locale"`
 }
 
 // Provider represents an OAuth2 provider.
@@ -96,64 +96,64 @@ func GenerateCodeChallenge(verifier string) string {
 // AuthorizationURL returns the OAuth2 authorization URL.
 func (p *Provider) AuthorizationURL(state, codeVerifier string) string {
 	params := url.Values{
-		"client_id":    {p.config.ClientID},
-		"redirect_uri": {p.config.RedirectURL},
+		"client_id":     {p.config.ClientID},
+		"redirect_uri":  {p.config.RedirectURL},
 		"response_type": {"code"},
-		"scope":        {strings.Join(p.config.Scopes, " ")},
-		"state":        {state},
+		"scope":         {strings.Join(p.config.Scopes, " ")},
+		"state":         {state},
 	}
-	
+
 	if codeVerifier != "" {
 		params.Set("code_challenge_method", "S256")
 		params.Set("code_challenge", GenerateCodeChallenge(codeVerifier))
 	}
-	
+
 	authURL, err := url.Parse(p.config.AuthorizationURL)
 	if err != nil {
 		return ""
 	}
 	authURL.RawQuery = params.Encode()
-	
+
 	return authURL.String()
 }
 
 // ExchangeCode exchanges authorization code for tokens.
 func (p *Provider) ExchangeCode(ctx context.Context, code, codeVerifier string) (*TokenResponse, error) {
 	data := url.Values{
-		"grant_type":   {"authorization_code"},
-		"client_id":    {p.config.ClientID},
+		"grant_type":    {"authorization_code"},
+		"client_id":     {p.config.ClientID},
 		"client_secret": {p.config.ClientSecret},
-		"code":         {code},
-		"redirect_uri": {p.config.RedirectURL},
+		"code":          {code},
+		"redirect_uri":  {p.config.RedirectURL},
 	}
-	
+
 	if codeVerifier != "" {
 		data.Set("code_verifier", codeVerifier)
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", p.config.TokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	
+
 	resp, err := p.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
 		return nil, fmt.Errorf("token exchange failed: %s", body)
 	}
-	
+
 	var tokenResp TokenResponse
 	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
 		return nil, err
 	}
-	
+
 	return &tokenResp, nil
 }
 
@@ -165,29 +165,29 @@ func (p *Provider) RefreshToken(ctx context.Context, refreshToken string) (*Toke
 		"client_secret": {p.config.ClientSecret},
 		"refresh_token": {refreshToken},
 	}
-	
+
 	req, err := http.NewRequestWithContext(ctx, "POST", p.config.TokenURL, strings.NewReader(data.Encode()))
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	
+
 	resp, err := p.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New("token refresh failed")
 	}
-	
+
 	var tokenResp TokenResponse
 	if err := json.NewDecoder(resp.Body).Decode(&tokenResp); err != nil {
 		return nil, err
 	}
-	
+
 	return &tokenResp, nil
 }
 
@@ -197,24 +197,24 @@ func (p *Provider) GetUserInfo(ctx context.Context, accessToken string) (*UserIn
 	if err != nil {
 		return nil, err
 	}
-	
+
 	req.Header.Set("Authorization", "Bearer "+accessToken)
-	
+
 	resp, err := p.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	
+
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.New("user info request failed")
 	}
-	
+
 	var userInfo UserInfo
 	if err := json.NewDecoder(resp.Body).Decode(&userInfo); err != nil {
 		return nil, err
 	}
-	
+
 	return &userInfo, nil
 }
 
@@ -247,20 +247,20 @@ func NewSessionManager() *SessionManager {
 // CreateSession creates a new session from OAuth2 tokens.
 func (sm *SessionManager) CreateSession(userID, email, accessToken, refreshToken string, expiresIn int) *Session {
 	session := &Session{
-		ID:            generateID(),
-		UserID:        userID,
-		Email:         email,
-		AccessToken:   accessToken,
-		RefreshToken:  refreshToken,
-		ExpiresAt:     time.Now().Add(time.Duration(expiresIn) * time.Second),
-		CreatedAt:     time.Now(),
+		ID:           generateID(),
+		UserID:       userID,
+		Email:        email,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		ExpiresAt:    time.Now().Add(time.Duration(expiresIn) * time.Second),
+		CreatedAt:    time.Now(),
 	}
-	
+
 	sm.mu.Lock()
 	sm.sessions[session.ID] = session
 	sm.keys[accessToken] = session.ID
 	sm.mu.Unlock()
-	
+
 	return session
 }
 
@@ -268,12 +268,12 @@ func (sm *SessionManager) CreateSession(userID, email, accessToken, refreshToken
 func (sm *SessionManager) GetSession(sessionID string) (*Session, bool) {
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
-	
+
 	session, ok := sm.sessions[sessionID]
 	if !ok || time.Now().After(session.ExpiresAt) {
 		return nil, false
 	}
-	
+
 	return session, true
 }
 
@@ -281,7 +281,7 @@ func (sm *SessionManager) GetSession(sessionID string) (*Session, bool) {
 func (sm *SessionManager) GetSessionByToken(accessToken string) (*Session, bool) {
 	sm.mu.RLock()
 	defer sm.mu.RUnlock()
-	
+
 	if sessionID, ok := sm.keys[accessToken]; ok {
 		if session, ok := sm.sessions[sessionID]; ok {
 			if !time.Now().After(session.ExpiresAt) {
@@ -289,7 +289,7 @@ func (sm *SessionManager) GetSessionByToken(accessToken string) (*Session, bool)
 			}
 		}
 	}
-	
+
 	return nil, false
 }
 
@@ -297,7 +297,7 @@ func (sm *SessionManager) GetSessionByToken(accessToken string) (*Session, bool)
 func (sm *SessionManager) DeleteSession(sessionID string) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
-	
+
 	if session, ok := sm.sessions[sessionID]; ok {
 		delete(sm.keys, session.AccessToken)
 		delete(sm.sessions, sessionID)
@@ -311,14 +311,14 @@ func (sm *SessionManager) Middleware() func(http.Handler) http.Handler {
 			token := r.Header.Get("Authorization")
 			if token != "" {
 				token = strings.TrimPrefix(token, "Bearer ")
-				
+
 				if session, ok := sm.GetSessionByToken(token); ok {
 					ctx := r.Context()
 					ctx = context.WithValue(ctx, "session", session)
 					r = r.WithContext(ctx)
 				}
 			}
-			
+
 			next.ServeHTTP(w, r)
 		})
 	}

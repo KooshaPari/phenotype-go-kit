@@ -2,11 +2,11 @@ package db
 
 // IndexDefinition represents a database index.
 type IndexDefinition struct {
-	Name      string   `json:"name"`
-	Table     string   `json:"table"`
-	Columns   []string `json:"columns"`
-	Unique    bool     `json:"unique"`
-	Partial   string   `json:"partial,omitempty"` // SQL WHERE clause for partial index
+	Name    string   `json:"name"`
+	Table   string   `json:"table"`
+	Columns []string `json:"columns"`
+	Unique  bool     `json:"unique"`
+	Partial string   `json:"partial,omitempty"` // SQL WHERE clause for partial index
 }
 
 // Common indexes for the application.
@@ -33,7 +33,7 @@ var Indexes = []IndexDefinition{
 		Table:   "users",
 		Columns: []string{"updated_at"},
 	},
-	
+
 	// Webhooks table indexes
 	{
 		Name:    "idx_webhooks_user_id",
@@ -60,7 +60,7 @@ var Indexes = []IndexDefinition{
 		Table:   "webhooks",
 		Columns: []string{"created_at"},
 	},
-	
+
 	// Jobs table indexes
 	{
 		Name:    "idx_jobs_user_id",
@@ -97,7 +97,7 @@ var Indexes = []IndexDefinition{
 		Table:   "jobs",
 		Columns: []string{"updated_at"},
 	},
-	
+
 	// Composite indexes for common queries
 	{
 		Name:    "idx_jobs_status_scheduled",
@@ -114,7 +114,7 @@ var Indexes = []IndexDefinition{
 		Table:   "webhooks",
 		Columns: []string{"user_id", "active"},
 	},
-	
+
 	// Partial indexes
 	{
 		Name:    "idx_jobs_pending",
@@ -139,17 +139,17 @@ func (i *IndexDefinition) GenerateCreateIndexSQL() string {
 		}
 		columns += col
 	}
-	
+
 	sql := "CREATE"
 	if i.Unique {
 		sql += " UNIQUE"
 	}
 	sql += " INDEX IF NOT EXISTS " + i.Name + " ON " + i.Table + " (" + columns + ")"
-	
+
 	if i.Partial != "" {
 		sql += " WHERE " + i.Partial
 	}
-	
+
 	return sql
 }
 

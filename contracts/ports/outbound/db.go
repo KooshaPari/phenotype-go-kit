@@ -41,11 +41,11 @@ func (p PaginationParams) Offset() int {
 
 // QueryOptions holds optional query parameters.
 type QueryOptions struct {
-	Timeout    int  // milliseconds, 0 = default
+	Timeout       int // milliseconds, 0 = default
 	SlowThreshold int // milliseconds, 0 = disabled
-	MaxRows    int  // 0 = unlimited
-	ReadOnly   bool
-	NoWait     bool
+	MaxRows       int // 0 = unlimited
+	ReadOnly      bool
+	NoWait        bool
 }
 
 // QueryExecutor defines the interface for executing queries.
@@ -72,24 +72,24 @@ type QueryExecutor interface {
 
 // TxOptions holds transaction options.
 type TxOptions struct {
-	Isolation  IsolationLevel
-	ReadOnly   bool
-	NoWait     bool
-	Immediate  bool
+	Isolation IsolationLevel
+	ReadOnly  bool
+	NoWait    bool
+	Immediate bool
 }
 
 // IsolationLevel represents SQL isolation levels.
 type IsolationLevel int
 
 const (
-	IsolationDefault          IsolationLevel = 0
-	IsolationReadUncommitted  IsolationLevel = 1
-	IsolationReadCommitted    IsolationLevel = 2
-	IsolationWriteCommitted   IsolationLevel = 3
-	IsolationRepeatableRead   IsolationLevel = 4
-	IsolationSnapshot         IsolationLevel = 5
-	IsolationSerializable     IsolationLevel = 6
-	IsolationLinearizable     IsolationLevel = 7
+	IsolationDefault         IsolationLevel = 0
+	IsolationReadUncommitted IsolationLevel = 1
+	IsolationReadCommitted   IsolationLevel = 2
+	IsolationWriteCommitted  IsolationLevel = 3
+	IsolationRepeatableRead  IsolationLevel = 4
+	IsolationSnapshot        IsolationLevel = 5
+	IsolationSerializable    IsolationLevel = 6
+	IsolationLinearizable    IsolationLevel = 7
 )
 
 // Transaction represents a database transaction.
@@ -184,7 +184,7 @@ func DefaultPoolConfig() PoolConfig {
 		ConnMaxLifetime:   300000, // 5 minutes
 		ConnMaxIdleTime:   60000,  // 1 minute
 		DialTimeout:       5000,   // 5 seconds
-		QueryTimeout:      30000, // 30 seconds
+		QueryTimeout:      30000,  // 30 seconds
 		EnableHealthCheck: true,
 	}
 }

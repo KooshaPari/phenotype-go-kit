@@ -12,7 +12,7 @@ type testHook struct {
 }
 
 func (h *testHook) OnRegister(ownerID string, key string, value int) { h.registered++ }
-func (h *testHook) OnUnregister(ownerID string)                     { h.unregistered++ }
+func (h *testHook) OnUnregister(ownerID string)                      { h.unregistered++ }
 
 func TestRegisterAndGet(t *testing.T) {
 	r := registry.New[string, int]()

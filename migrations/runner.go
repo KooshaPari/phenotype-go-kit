@@ -11,27 +11,27 @@ import (
 
 // Migration represents a database migration.
 type Migration struct {
-	Version   string
-	Name      string
-	Up        func(*sql.Tx) error
-	Down      func(*sql.Tx) error
+	Version string
+	Name    string
+	Up      func(*sql.Tx) error
+	Down    func(*sql.Tx) error
 }
 
 // MigrationRunner manages database migrations.
 type MigrationRunner struct {
-	db       *sql.DB
+	db         *sql.DB
 	migrations []Migration
-	table    string
-	logger   *slog.Logger
+	table      string
+	logger     *slog.Logger
 }
 
 // NewMigrationRunner creates a new migration runner.
 func NewMigrationRunner(db *sql.DB, migrations []Migration, logger *slog.Logger) *MigrationRunner {
 	return &MigrationRunner{
-		db:        db,
+		db:         db,
 		migrations: migrations,
-		table:     "schema_migrations",
-		logger:    logger,
+		table:      "schema_migrations",
+		logger:     logger,
 	}
 }
 
@@ -269,9 +269,9 @@ func LoadMigrations(dir string) ([]Migration, error) {
 
 // SeedData holds seed data for the database.
 type SeedData struct {
-	Users     []UserSeed
-	Webhooks  []WebhookSeed
-	Jobs      []JobSeed
+	Users    []UserSeed
+	Webhooks []WebhookSeed
+	Jobs     []JobSeed
 }
 
 // UserSeed represents a user to seed.
@@ -298,16 +298,16 @@ type JobSeed struct {
 
 // Seeder seeds the database with initial data.
 type Seeder struct {
-	db   *sql.DB
-	data SeedData
+	db     *sql.DB
+	data   SeedData
 	logger *slog.Logger
 }
 
 // NewSeeder creates a new database seeder.
 func NewSeeder(db *sql.DB, data SeedData, logger *slog.Logger) *Seeder {
 	return &Seeder{
-		db:   db,
-		data: data,
+		db:     db,
+		data:   data,
 		logger: logger,
 	}
 }

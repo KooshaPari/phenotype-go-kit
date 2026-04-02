@@ -35,7 +35,7 @@ type SecretOption func(*secretOptions)
 type secretOptions struct {
 	version       int
 	metadata      map[string]string
-	leaseDuration int   // seconds
+	leaseDuration int // seconds
 	rotate        bool
 }
 

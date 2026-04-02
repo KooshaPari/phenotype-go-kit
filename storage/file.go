@@ -38,12 +38,12 @@ type ObjectStorage interface {
 
 // S3Config holds configuration for AWS S3.
 type S3Config struct {
-	Bucket   string
-	Region   string
-	Endpoint string
+	Bucket    string
+	Region    string
+	Endpoint  string
 	AccessKey string
 	SecretKey string
-	UseSSL   bool
+	UseSSL    bool
 }
 
 // FileService handles file operations.
