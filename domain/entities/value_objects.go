@@ -44,10 +44,10 @@ func (e *DomainError) Unwrap() error {
 
 // Common domain errors following Error handling best practices.
 var (
-	ErrFeatureNotFound    = &DomainError{Code: "FEATURE_NOT_FOUND", Message: "Feature not found"}
-	ErrWPNotFound         = &DomainError{Code: "WP_NOT_FOUND", Message: "Work package not found"}
-	ErrInvalidTransition  = &DomainError{Code: "INVALID_TRANSITION", Message: "Invalid state transition"}
-	ErrMissingEvidence    = &DomainError{Code: "MISSING_EVIDENCE", Message: "Missing required evidence"}
+	ErrFeatureNotFound     = &DomainError{Code: "FEATURE_NOT_FOUND", Message: "Feature not found"}
+	ErrWPNotFound          = &DomainError{Code: "WP_NOT_FOUND", Message: "Work package not found"}
+	ErrInvalidTransition   = &DomainError{Code: "INVALID_TRANSITION", Message: "Invalid state transition"}
+	ErrMissingEvidence     = &DomainError{Code: "MISSING_EVIDENCE", Message: "Missing required evidence"}
 	ErrGovernanceViolation = &DomainError{Code: "GOVERNANCE_VIOLATION", Message: "Governance contract violated"}
 )
 

@@ -23,18 +23,18 @@ const (
 
 // Metrics holds all application metrics.
 type Metrics struct {
-	httpRequestCount   *prometheus.CounterVec
+	httpRequestCount    *prometheus.CounterVec
 	httpRequestDuration *prometheus.HistogramVec
-	httpResponseSize   *prometheus.HistogramVec
+	httpResponseSize    *prometheus.HistogramVec
 
 	jobQueueDepth     *prometheus.GaugeVec
 	jobProcessingTime *prometheus.HistogramVec
 	jobRetries        *prometheus.CounterVec
 
-	dbQueryDuration  *prometheus.HistogramVec
-	dbQueryErrors    *prometheus.CounterVec
+	dbQueryDuration *prometheus.HistogramVec
+	dbQueryErrors   *prometheus.CounterVec
 
-	businessMetrics  map[string]*prometheus.CounterVec
+	businessMetrics map[string]*prometheus.CounterVec
 
 	mu sync.RWMutex
 }

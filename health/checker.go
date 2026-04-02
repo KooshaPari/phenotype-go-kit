@@ -112,8 +112,8 @@ func ReadinessHandler(h *HealthChecker) http.HandlerFunc {
 		if hasUnhealthy {
 			w.WriteHeader(http.StatusServiceUnavailable)
 			json.NewEncoder(w).Encode(map[string]interface{}{
-				"status":  "unhealthy",
-				"checks":  results,
+				"status": "unhealthy",
+				"checks": results,
 			})
 		} else {
 			w.WriteHeader(http.StatusOK)
@@ -144,7 +144,7 @@ func JSONHandler(h *HealthChecker) http.HandlerFunc {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"status":   overallStatus,
+			"status":    overallStatus,
 			"timestamp": time.Now().Format(time.RFC3339),
 			"checks":    results,
 		})
@@ -153,7 +153,7 @@ func JSONHandler(h *HealthChecker) http.HandlerFunc {
 
 // DatabaseChecker implements a database health check.
 type DatabaseChecker struct {
-	name   string
+	name    string
 	checkFn func(ctx context.Context) error
 }
 
@@ -183,7 +183,7 @@ func (c *DatabaseChecker) Check(ctx context.Context) CheckResult {
 
 // RedisChecker implements a Redis health check.
 type RedisChecker struct {
-	name   string
+	name    string
 	checkFn func(ctx context.Context) error
 }
 
@@ -213,7 +213,7 @@ func (c *RedisChecker) Check(ctx context.Context) CheckResult {
 
 // ComponentChecker implements a generic component health check.
 type ComponentChecker struct {
-	name   string
+	name    string
 	checkFn func(ctx context.Context) error
 }
 

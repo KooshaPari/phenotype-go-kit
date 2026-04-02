@@ -7,16 +7,16 @@ import (
 
 // GrafanaDashboard represents a Grafana dashboard.
 type GrafanaDashboard struct {
-	ID       int                    `json:"id,omitempty"`
-	UID      string                 `json:"uid"`
-	Title    string                 `json:"title"`
-	Tags     []string               `json:"tags"`
-	Time     GrafanaTimeSettings    `json:"time"`
-	Timepicker GrafanaTimepicker    `json:"timepicker"`
-	Panels   []GrafanaPanel         `json:"panels"`
-	Schema   int                    `json:"schemaVersion"`
-	Version  int                    `json:"version"`
-	Refresh  string                 `json:"refresh"`
+	ID         int                 `json:"id,omitempty"`
+	UID        string              `json:"uid"`
+	Title      string              `json:"title"`
+	Tags       []string            `json:"tags"`
+	Time       GrafanaTimeSettings `json:"time"`
+	Timepicker GrafanaTimepicker   `json:"timepicker"`
+	Panels     []GrafanaPanel      `json:"panels"`
+	Schema     int                 `json:"schemaVersion"`
+	Version    int                 `json:"version"`
+	Refresh    string              `json:"refresh"`
 }
 
 // GrafanaTimeSettings holds time settings.
@@ -33,13 +33,13 @@ type GrafanaTimepicker struct {
 
 // GrafanaPanel represents a dashboard panel.
 type GrafanaPanel struct {
-	ID       int                    `json:"id"`
-	Type     string                 `json:"type"`
-	Title    string                 `json:"title"`
-	GridPos  GrafanaGridPos         `json:"gridPos"`
-	Targets  []GrafanaTarget        `json:"targets"`
-	Options  map[string]interface{} `json:"options,omitempty"`
-	FieldConfig GrafanaFieldConfig  `json:"fieldConfig,omitempty"`
+	ID          int                    `json:"id"`
+	Type        string                 `json:"type"`
+	Title       string                 `json:"title"`
+	GridPos     GrafanaGridPos         `json:"gridPos"`
+	Targets     []GrafanaTarget        `json:"targets"`
+	Options     map[string]interface{} `json:"options,omitempty"`
+	FieldConfig GrafanaFieldConfig     `json:"fieldConfig,omitempty"`
 }
 
 // GrafanaGridPos holds grid position.
@@ -52,11 +52,11 @@ type GrafanaGridPos struct {
 
 // GrafanaTarget represents a data source target.
 type GrafanaTarget struct {
-	Expr           string                 `json:"expr"`
-	LegendFormat   string                 `json:"legendFormat"`
-	RefID          string                 `json:"refId"`
-	Format         string                 `json:"format"`
-	Instant        bool                   `json:"instant,omitempty"`
+	Expr         string `json:"expr"`
+	LegendFormat string `json:"legendFormat"`
+	RefID        string `json:"refId"`
+	Format       string `json:"format"`
+	Instant      bool   `json:"instant,omitempty"`
 }
 
 // GrafanaFieldConfig holds field configuration.
@@ -66,23 +66,23 @@ type GrafanaFieldConfig struct {
 
 // GrafanaDefaults holds default field settings.
 type GrafanaDefaults struct {
-	Unit    string                 `json:"unit"`
-	Min     int                    `json:"min,omitempty"`
-	Max     int                    `json:"max,omitempty"`
-	Decimals int                   `json:"decimals,omitempty"`
-	Thresholds GrafanaThresholds   `json:"thresholds,omitempty"`
+	Unit       string            `json:"unit"`
+	Min        int               `json:"min,omitempty"`
+	Max        int               `json:"max,omitempty"`
+	Decimals   int               `json:"decimals,omitempty"`
+	Thresholds GrafanaThresholds `json:"thresholds,omitempty"`
 }
 
 // GrafanaThresholds holds threshold configuration.
 type GrafanaThresholds struct {
-	Mode string   `json:"mode"`
+	Mode  string          `json:"mode"`
 	Steps []ThresholdStep `json:"steps"`
 }
 
 // ThresholdStep represents a threshold step.
 type ThresholdStep struct {
-	Value  float64 `json:"value"`
-	Color  string  `json:"color"`
+	Value float64 `json:"value"`
+	Color string  `json:"color"`
 }
 
 // OperationalDashboard creates the primary operational dashboard.
@@ -105,9 +105,9 @@ func OperationalDashboard() GrafanaDashboard {
 		Panels: []GrafanaPanel{
 			// HTTP Request Rate
 			{
-				ID:    1,
-				Type:  "graph",
-				Title: "HTTP Request Rate",
+				ID:      1,
+				Type:    "graph",
+				Title:   "HTTP Request Rate",
 				GridPos: GrafanaGridPos{X: 0, Y: 0, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -119,9 +119,9 @@ func OperationalDashboard() GrafanaDashboard {
 			},
 			// Error Rate
 			{
-				ID:    2,
-				Type:  "graph",
-				Title: "Error Rate (%)",
+				ID:      2,
+				Type:    "graph",
+				Title:   "Error Rate (%)",
 				GridPos: GrafanaGridPos{X: 12, Y: 0, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -146,9 +146,9 @@ func OperationalDashboard() GrafanaDashboard {
 			},
 			// P99 Latency
 			{
-				ID:    3,
-				Type:  "graph",
-				Title: "P99 Latency",
+				ID:      3,
+				Type:    "graph",
+				Title:   "P99 Latency",
 				GridPos: GrafanaGridPos{X: 0, Y: 8, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -173,9 +173,9 @@ func OperationalDashboard() GrafanaDashboard {
 			},
 			// P95 Latency
 			{
-				ID:    4,
-				Type:  "graph",
-				Title: "P95 Latency",
+				ID:      4,
+				Type:    "graph",
+				Title:   "P95 Latency",
 				GridPos: GrafanaGridPos{X: 12, Y: 8, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -192,9 +192,9 @@ func OperationalDashboard() GrafanaDashboard {
 			},
 			// CPU Usage
 			{
-				ID:    5,
-				Type:  "graph",
-				Title: "CPU Usage",
+				ID:      5,
+				Type:    "graph",
+				Title:   "CPU Usage",
 				GridPos: GrafanaGridPos{X: 0, Y: 16, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -212,9 +212,9 @@ func OperationalDashboard() GrafanaDashboard {
 			},
 			// Memory Usage
 			{
-				ID:    6,
-				Type:  "graph",
-				Title: "Memory Usage",
+				ID:      6,
+				Type:    "graph",
+				Title:   "Memory Usage",
 				GridPos: GrafanaGridPos{X: 12, Y: 16, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -231,9 +231,9 @@ func OperationalDashboard() GrafanaDashboard {
 			},
 			// Active Connections
 			{
-				ID:    7,
-				Type:  "stat",
-				Title: "Active Connections",
+				ID:      7,
+				Type:    "stat",
+				Title:   "Active Connections",
 				GridPos: GrafanaGridPos{X: 0, Y: 24, W: 6, H: 4},
 				Targets: []GrafanaTarget{
 					{
@@ -245,9 +245,9 @@ func OperationalDashboard() GrafanaDashboard {
 			},
 			// Job Queue Depth
 			{
-				ID:    8,
-				Type:  "stat",
-				Title: "Job Queue Depth",
+				ID:      8,
+				Type:    "stat",
+				Title:   "Job Queue Depth",
 				GridPos: GrafanaGridPos{X: 6, Y: 24, W: 6, H: 4},
 				Targets: []GrafanaTarget{
 					{
@@ -259,9 +259,9 @@ func OperationalDashboard() GrafanaDashboard {
 			},
 			// Database Pool
 			{
-				ID:    9,
-				Type:  "gauge",
-				Title: "DB Connection Pool",
+				ID:      9,
+				Type:    "gauge",
+				Title:   "DB Connection Pool",
 				GridPos: GrafanaGridPos{X: 12, Y: 24, W: 6, H: 4},
 				Targets: []GrafanaTarget{
 					{
@@ -304,9 +304,9 @@ func DatabaseDashboard() GrafanaDashboard {
 		},
 		Panels: []GrafanaPanel{
 			{
-				ID:    1,
-				Type:  "graph",
-				Title: "Query Duration (P95)",
+				ID:      1,
+				Type:    "graph",
+				Title:   "Query Duration (P95)",
 				GridPos: GrafanaGridPos{X: 0, Y: 0, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -317,9 +317,9 @@ func DatabaseDashboard() GrafanaDashboard {
 				},
 			},
 			{
-				ID:    2,
-				Type:  "graph",
-				Title: "Query Error Rate",
+				ID:      2,
+				Type:    "graph",
+				Title:   "Query Error Rate",
 				GridPos: GrafanaGridPos{X: 12, Y: 0, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -330,9 +330,9 @@ func DatabaseDashboard() GrafanaDashboard {
 				},
 			},
 			{
-				ID:    3,
-				Type:  "graph",
-				Title: "Active Connections",
+				ID:      3,
+				Type:    "graph",
+				Title:   "Active Connections",
 				GridPos: GrafanaGridPos{X: 0, Y: 8, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -353,9 +353,9 @@ func DatabaseDashboard() GrafanaDashboard {
 				},
 			},
 			{
-				ID:    4,
-				Type:  "graph",
-				Title: "Table Index Usage",
+				ID:      4,
+				Type:    "graph",
+				Title:   "Table Index Usage",
 				GridPos: GrafanaGridPos{X: 12, Y: 8, W: 12, H: 8},
 				Targets: []GrafanaTarget{
 					{
@@ -399,9 +399,9 @@ func HealthDashboard() GrafanaDashboard {
 		},
 		Panels: []GrafanaPanel{
 			{
-				ID:    1,
-				Type:  "stat",
-				Title: "Service Status",
+				ID:      1,
+				Type:    "stat",
+				Title:   "Service Status",
 				GridPos: GrafanaGridPos{X: 0, Y: 0, W: 4, H: 4},
 				Targets: []GrafanaTarget{
 					{
@@ -414,33 +414,33 @@ func HealthDashboard() GrafanaDashboard {
 				},
 			},
 			{
-				ID:    2,
-				Type:  "stat",
-				Title: "Liveness Checks",
+				ID:      2,
+				Type:    "stat",
+				Title:   "Liveness Checks",
 				GridPos: GrafanaGridPos{X: 4, Y: 0, W: 4, H: 4},
 				Targets: []GrafanaTarget{
 					{
-						Expr:         "probe_success{target='liveness'}",
-						RefID:        "A",
+						Expr:  "probe_success{target='liveness'}",
+						RefID: "A",
 					},
 				},
 			},
 			{
-				ID:    3,
-				Type:  "stat",
-				Title: "Readiness Checks",
+				ID:      3,
+				Type:    "stat",
+				Title:   "Readiness Checks",
 				GridPos: GrafanaGridPos{X: 8, Y: 0, W: 4, H: 4},
 				Targets: []GrafanaTarget{
 					{
-						Expr:         "probe_success{target='readiness'}",
-						RefID:        "A",
+						Expr:  "probe_success{target='readiness'}",
+						RefID: "A",
 					},
 				},
 			},
 			{
-				ID:    4,
-				Type:  "table",
-				Title: "Component Health",
+				ID:      4,
+				Type:    "table",
+				Title:   "Component Health",
 				GridPos: GrafanaGridPos{X: 0, Y: 4, W: 24, H: 8},
 				Targets: []GrafanaTarget{
 					{

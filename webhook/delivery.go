@@ -22,13 +22,13 @@ type Delivery struct {
 	Payload   json.RawMessage `json:"payload"`
 	Headers   http.Header     `json:"headers"`
 
-	StatusCode int            `json:"status_code"`
-	Response   string         `json:"response,omitempty"`
-	Duration   time.Duration  `json:"duration"`
-	Success    bool           `json:"success"`
-	Retries    int            `json:"retries"`
-	CreatedAt  time.Time      `json:"created_at"`
-	SentAt     *time.Time     `json:"sent_at,omitempty"`
+	StatusCode int           `json:"status_code"`
+	Response   string        `json:"response,omitempty"`
+	Duration   time.Duration `json:"duration"`
+	Success    bool          `json:"success"`
+	Retries    int           `json:"retries"`
+	CreatedAt  time.Time     `json:"created_at"`
+	SentAt     *time.Time    `json:"sent_at,omitempty"`
 }
 
 // SignatureHeaderName is the header used for webhook signatures.
@@ -44,10 +44,10 @@ type DeliveryConfig struct {
 
 // DeliveryService handles webhook deliveries.
 type DeliveryService struct {
-	client  *http.Client
-	config  DeliveryConfig
-	secret  []byte
-	logger  *slog.Logger
+	client *http.Client
+	config DeliveryConfig
+	secret []byte
+	logger *slog.Logger
 }
 
 // NewDeliveryService creates a new webhook delivery service.

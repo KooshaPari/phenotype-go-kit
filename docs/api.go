@@ -40,15 +40,15 @@ type Parameter struct {
 // GenerateOpenAPI generates OpenAPI 3.0 specification.
 func (a *APIDoc) GenerateOpenAPI() string {
 	var buf bytes.Buffer
-	
+
 	buf.WriteString("openapi: 3.0.0\n")
 	buf.WriteString(fmt.Sprintf("info:\n  title: %s\n  description: %s\n  version: %s\n\n", a.Title, a.Description, a.Version))
 	buf.WriteString(fmt.Sprintf("servers:\n  - url: %s\n\n", a.BasePath))
 	buf.WriteString("paths:\n")
-	
+
 	for _, ep := range a.Endpoints {
 		buf.WriteString(fmt.Sprintf("  %s:\n    %s:\n      summary: %s\n      description: %s\n", ep.Path, strings.ToLower(ep.Method), ep.Summary, ep.Description))
-		
+
 		if len(ep.Parameters) > 0 {
 			buf.WriteString("      parameters:\n")
 			for _, p := range ep.Parameters {
@@ -59,46 +59,46 @@ func (a *APIDoc) GenerateOpenAPI() string {
 				buf.WriteString(fmt.Sprintf("        - name: %s\n          in: %s\n          required: %s\n          schema:\n            type: %s\n          description: %s\n", p.Name, p.In, required, p.Type, p.Description))
 			}
 		}
-		
+
 		if ep.RequestBody != nil {
 			buf.WriteString("      requestBody:\n        content:\n          application/json:\n            schema:\n              type: object\n")
 		}
-		
+
 		if len(ep.Response) > 0 {
 			buf.WriteString("      responses:\n")
 			for code, resp := range ep.Response {
 				buf.WriteString(fmt.Sprintf("        '%s':\n          description: %v\n", code, resp))
 			}
 		}
-		
+
 		if len(ep.Security) > 0 {
 			buf.WriteString("      security:\n")
 			for _, sec := range ep.Security {
 				buf.WriteString(fmt.Sprintf("        - %s: []\n", sec))
 			}
 		}
-		
+
 		buf.WriteString("\n")
 	}
-	
+
 	return buf.String()
 }
 
 // MarkdownDocs generates Markdown documentation.
 func (a *APIDoc) MarkdownDocs() string {
 	var buf bytes.Buffer
-	
+
 	buf.WriteString(fmt.Sprintf("# %s\n\n", a.Title))
 	buf.WriteString(fmt.Sprintf("%s\n\n", a.Description))
 	buf.WriteString(fmt.Sprintf("**Version:** %s\n\n", a.Version))
 	buf.WriteString(fmt.Sprintf("**Base URL:** %s\n\n", a.BasePath))
-	
+
 	buf.WriteString("## Endpoints\n\n")
-	
+
 	for _, ep := range a.Endpoints {
 		buf.WriteString(fmt.Sprintf("### %s %s\n\n", ep.Method, ep.Path))
 		buf.WriteString(fmt.Sprintf("**%s**\n\n%s\n\n", ep.Summary, ep.Description))
-		
+
 		if len(ep.Parameters) > 0 {
 			buf.WriteString("**Parameters:**\n\n")
 			buf.WriteString("| Name | In | Type | Required | Description |\n")
@@ -112,7 +112,7 @@ func (a *APIDoc) MarkdownDocs() string {
 			}
 			buf.WriteString("\n")
 		}
-		
+
 		if len(ep.Response) > 0 {
 			buf.WriteString("**Responses:**\n\n")
 			for code, resp := range ep.Response {
@@ -121,7 +121,7 @@ func (a *APIDoc) MarkdownDocs() string {
 			buf.WriteString("\n")
 		}
 	}
-	
+
 	return buf.String()
 }
 

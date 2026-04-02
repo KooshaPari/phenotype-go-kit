@@ -97,18 +97,18 @@ func (m *Manager) Delete(ctx context.Context, key string) error {
 // EnvFromSecrets generates environment variables from secrets.
 func (m *Manager) EnvFromSecrets(ctx context.Context, keys []string) (map[string]string, error) {
 	result := make(map[string]string)
-	
+
 	for _, key := range keys {
 		value, err := m.Get(ctx, key)
 		if err != nil {
 			m.logger.Warn("failed to get secret", "key", key, "error", err)
 			continue
 		}
-		
+
 		envKey := formatEnvKey(key)
 		result[envKey] = value
 	}
-	
+
 	return result, nil
 }
 

@@ -152,5 +152,3 @@ func (m *GCSMockStorage) List(ctx context.Context, prefix string) ([]string, err
 	}
 	return keys, nil
 }
-
-

@@ -10,11 +10,11 @@ import (
 
 // QueryConfig holds query optimization configuration.
 type QueryConfig struct {
-	Timeout        time.Duration
-	SlowThreshold  time.Duration
-	MaxRows        int
-	EnableAnalyze  bool
-	EnableExplain  bool
+	Timeout       time.Duration
+	SlowThreshold time.Duration
+	MaxRows       int
+	EnableAnalyze bool
+	EnableExplain bool
 }
 
 // DefaultQueryConfig returns default configuration.
@@ -30,18 +30,18 @@ func DefaultQueryConfig() QueryConfig {
 
 // QueryMetrics holds query performance metrics.
 type QueryMetrics struct {
-	Query      string
-	Duration   time.Duration
+	Query        string
+	Duration     time.Duration
 	RowsAffected int64
-	Timestamp  time.Time
-	Slow       bool
-	Error      error
+	Timestamp    time.Time
+	Slow         bool
+	Error        error
 }
 
 // SlowQueryLogger logs slow queries.
 type SlowQueryLogger struct {
-	logger     *slog.Logger
-	threshold  time.Duration
+	logger    *slog.Logger
+	threshold time.Duration
 }
 
 // NewSlowQueryLogger creates a slow query logger.
@@ -65,15 +65,15 @@ func (l *SlowQueryLogger) Log(ctx context.Context, metrics QueryMetrics) {
 
 // QueryBuilder provides a fluent interface for building queries.
 type QueryBuilder struct {
-	table      string
-	columns    []string
-	where      []string
-	orderBy    []string
-	limitVal   int
-	offsetVal  int
-	groupBy    []string
+	table       string
+	columns     []string
+	where       []string
+	orderBy     []string
+	limitVal    int
+	offsetVal   int
+	groupBy     []string
 	joinClauses []string
-	params     []interface{}
+	params      []interface{}
 }
 
 // NewQueryBuilder creates a new query builder.
@@ -145,55 +145,55 @@ func (qb *QueryBuilder) Build() (string, []interface{}) {
 	sql := "SELECT "
 	sql += joinStrings(qb.columns, ", ")
 	sql += " FROM " + qb.table
-	
+
 	for _, join := range qb.joinClauses {
 		sql += " " + join
 	}
-	
+
 	if len(qb.where) > 0 {
 		sql += " WHERE " + joinStrings(qb.where, " AND ")
 	}
-	
+
 	if len(qb.groupBy) > 0 {
 		sql += " GROUP BY " + joinStrings(qb.groupBy, ", ")
 	}
-	
+
 	if len(qb.orderBy) > 0 {
 		sql += " ORDER BY " + joinStrings(qb.orderBy, ", ")
 	}
-	
+
 	if qb.limitVal > 0 {
 		sql += fmt.Sprintf(" LIMIT %d", qb.limitVal)
 	}
-	
+
 	if qb.offsetVal > 0 {
 		sql += fmt.Sprintf(" OFFSET %d", qb.offsetVal)
 	}
-	
+
 	return sql, qb.params
 }
 
 // Count builds a count query.
 func (qb *QueryBuilder) Count() (string, []interface{}) {
 	sql := "SELECT COUNT(*) FROM " + qb.table
-	
+
 	if len(qb.where) > 0 {
 		sql += " WHERE " + joinStrings(qb.where, " AND ")
 	}
-	
+
 	return sql, qb.params
 }
 
 // Exists builds an EXISTS query.
 func (qb *QueryBuilder) Exists() (string, []interface{}) {
 	sql := "SELECT EXISTS(SELECT 1 FROM " + qb.table
-	
+
 	if len(qb.where) > 0 {
 		sql += " WHERE " + joinStrings(qb.where, " AND ")
 	}
-	
+
 	sql += ")"
-	
+
 	return sql, qb.params
 }
 
@@ -220,7 +220,7 @@ func CalculatePagination(page, pageSize int, totalCount int64) PaginationResult 
 	if int(totalCount)%pageSize > 0 {
 		totalPages++
 	}
-	
+
 	return PaginationResult{
 		Page:       page,
 		PageSize:   pageSize,
@@ -249,7 +249,7 @@ func ExplainQuery(ctx context.Context, db *sql.DB, query string, params ...inter
 		return "", err
 	}
 	defer rows.Close()
-	
+
 	var result string
 	for rows.Next() {
 		var line string
@@ -258,6 +258,6 @@ func ExplainQuery(ctx context.Context, db *sql.DB, query string, params ...inter
 		}
 		result += line + "\n"
 	}
-	
+
 	return result, rows.Err()
 }

@@ -56,8 +56,8 @@ func HighErrorRate(threshold float64, duration time.Duration) Alert {
 			"summary":     "High error rate detected",
 			"description": "Error rate is above {{ $value }}% for the last 5 minutes",
 		},
-		Expr:  fmt.Sprintf("sum(rate(phenotype_http_requests_total{status=~'5..'}[5m])) / sum(rate(phenotype_http_requests_total[5m])) * 100 > %f", threshold),
-		For:   duration.String(),
+		Expr:   fmt.Sprintf("sum(rate(phenotype_http_requests_total{status=~'5..'}[5m])) / sum(rate(phenotype_http_requests_total[5m])) * 100 > %f", threshold),
+		For:    duration.String(),
 		Source: "metrics",
 	}
 }
@@ -75,8 +75,8 @@ func HighLatency(threshold float64, duration time.Duration) Alert {
 			"summary":     "High latency detected",
 			"description": "P99 latency is above %dms for the last 5 minutes",
 		},
-		Expr:  fmt.Sprintf("histogram_quantile(0.99, sum(rate(phenotype_http_request_duration_seconds_bucket[5m])) by (le)) > %f", threshold),
-		For:   duration.String(),
+		Expr:   fmt.Sprintf("histogram_quantile(0.99, sum(rate(phenotype_http_request_duration_seconds_bucket[5m])) by (le)) > %f", threshold),
+		For:    duration.String(),
 		Source: "metrics",
 	}
 }
@@ -101,8 +101,8 @@ func ResourceExhaustion(resourceType, threshold string) Alert {
 			"summary":     fmt.Sprintf("System resource %s exhaustion", resourceType),
 			"description": fmt.Sprintf("%s usage is above %s threshold", resourceType, threshold),
 		},
-		Expr:  exprMap[resourceType],
-		For:   "2m",
+		Expr:   exprMap[resourceType],
+		For:    "2m",
 		Source: "metrics",
 	}
 }
@@ -120,8 +120,8 @@ func JobQueueBacklog(threshold int, duration time.Duration) Alert {
 			"summary":     "Job queue backlog detected",
 			"description": "Job queue depth exceeds %d for the last 10 minutes",
 		},
-		Expr:  fmt.Sprintf("phenotype_job_queue_depth > %d", threshold),
-		For:   duration.String(),
+		Expr:   fmt.Sprintf("phenotype_job_queue_depth > %d", threshold),
+		For:    duration.String(),
 		Source: "metrics",
 	}
 }
@@ -139,25 +139,25 @@ func DatabaseConnections(threshold float64) Alert {
 			"summary":     "Database connection exhaustion",
 			"description": "Database connection pool is above %d%% utilization",
 		},
-		Expr:  fmt.Sprintf("db_pool_connections_active / db_pool_connections_max * 100 > %f", threshold),
-		For:   "2m",
+		Expr:   fmt.Sprintf("db_pool_connections_active / db_pool_connections_max * 100 > %f", threshold),
+		For:    "2m",
 		Source: "metrics",
 	}
 }
 
 // PagerDutyConfig holds PagerDuty integration configuration.
 type PagerDutyConfig struct {
-	APIKey            string `yaml:"api_key"`
-	ServiceID         string `yaml:"service_id"`
-	IntegrationKey    string `yaml:"integration_key"`
-	EscalationPolicy  string `yaml:"escalation_policy"`
-	PriorityMapping   map[string]string `yaml:"priority_mapping"`
+	APIKey           string            `yaml:"api_key"`
+	ServiceID        string            `yaml:"service_id"`
+	IntegrationKey   string            `yaml:"integration_key"`
+	EscalationPolicy string            `yaml:"escalation_policy"`
+	PriorityMapping  map[string]string `yaml:"priority_mapping"`
 }
 
 // OpsGenieConfig holds OpsGenie integration configuration.
 type OpsGenieConfig struct {
-	APIKey        string `yaml:"api_key"`
-	TeamName      string `yaml:"team_name"`
+	APIKey          string            `yaml:"api_key"`
+	TeamName        string            `yaml:"team_name"`
 	PriorityMapping map[string]string `yaml:"priority_mapping"`
 }
 
@@ -204,13 +204,13 @@ receivers:
 
 // AlertThresholds holds threshold configurations.
 type AlertThresholds struct {
-	ErrorRate        float64 `yaml:"error_rate"`
-	P99LatencyMs     float64 `yaml:"p99_latency_ms"`
-	P95LatencyMs     float64 `yaml:"p95_latency_ms"`
+	ErrorRate          float64 `yaml:"error_rate"`
+	P99LatencyMs       float64 `yaml:"p99_latency_ms"`
+	P95LatencyMs       float64 `yaml:"p95_latency_ms"`
 	MemoryUsagePercent float64 `yaml:"memory_usage_percent"`
 	CPUUsagePercent    float64 `yaml:"cpu_usage_percent"`
 	DiskUsagePercent   float64 `yaml:"disk_usage_percent"`
-	QueueDepth        int     `yaml:"queue_depth"`
+	QueueDepth         int     `yaml:"queue_depth"`
 	DBPoolUsagePercent float64 `yaml:"db_pool_usage_percent"`
 }
 
@@ -275,12 +275,12 @@ func ParseDuration(s string) (time.Duration, error) {
 
 // SilenceRule represents an alert silence rule.
 type SilenceRule struct {
-	ID        string            `json:"id"`
-	Matchers  []string          `json:"matchers"`
-	StartsAt  time.Time         `json:"starts_at"`
-	EndsAt    time.Time         `json:"ends_at"`
-	CreatedBy string            `json:"created_by"`
-	Comment   string            `json:"comment"`
+	ID        string    `json:"id"`
+	Matchers  []string  `json:"matchers"`
+	StartsAt  time.Time `json:"starts_at"`
+	EndsAt    time.Time `json:"ends_at"`
+	CreatedBy string    `json:"created_by"`
+	Comment   string    `json:"comment"`
 }
 
 // Match checks if an alert matches the silence rule.

@@ -38,22 +38,22 @@ func (r *SQLRepository) Create(ctx context.Context, model interface{}) error {
 	if err != nil {
 		return err
 	}
-	
+
 	_, err = r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		r.logger.Error("create failed", "query", query, "error", err)
 		return err
 	}
-	
+
 	return nil
 }
 
 // Read retrieves a record by ID.
 func (r *SQLRepository) Read(ctx context.Context, id string) (interface{}, error) {
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id = ?", r.table)
-	
+
 	row := r.db.QueryRowContext(ctx, query, id)
-	
+
 	var result map[string]interface{}
 	if err := row.Scan(result); err != nil {
 		if err == sql.ErrNoRows {
@@ -61,7 +61,7 @@ func (r *SQLRepository) Read(ctx context.Context, id string) (interface{}, error
 		}
 		return nil, err
 	}
-	
+
 	return result, nil
 }
 
@@ -71,54 +71,54 @@ func (r *SQLRepository) Update(ctx context.Context, model interface{}) error {
 	if err != nil {
 		return err
 	}
-	
+
 	result, err := r.db.ExecContext(ctx, query, args...)
 	if err != nil {
 		return err
 	}
-	
+
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
 		return fmt.Errorf("not found")
 	}
-	
+
 	return nil
 }
 
 // Delete removes a record.
 func (r *SQLRepository) Delete(ctx context.Context, id string) error {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id = ?", r.table)
-	
+
 	result, err := r.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}
-	
+
 	rows, _ := result.RowsAffected()
 	if rows == 0 {
 		return fmt.Errorf("not found")
 	}
-	
+
 	return nil
 }
 
 // List retrieves multiple records with filtering and pagination.
 func (r *SQLRepository) List(ctx context.Context, filter interface{}, pagination interface{}) ([]interface{}, error) {
 	query, args := r.buildListQuery(filter, pagination)
-	
+
 	rows, err := r.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	var results []interface{}
 	for rows.Next() {
 		var result map[string]interface{}
 		// Scan would go here
 		results = append(results, result)
 	}
-	
+
 	return results, rows.Err()
 }
 
@@ -174,10 +174,10 @@ func BuildWhereClause(filters []Filter) (string, []interface{}) {
 	if len(filters) == 0 {
 		return "", nil
 	}
-	
+
 	clauses := make([]string, 0, len(filters))
 	args := make([]interface{}, 0, len(filters))
-	
+
 	for _, f := range filters {
 		switch f.Operator {
 		case "eq":
@@ -200,12 +200,12 @@ func BuildWhereClause(filters []Filter) (string, []interface{}) {
 			args = append(args, f.Value)
 		}
 	}
-	
+
 	where := " WHERE " + clauses[0]
 	for i := 1; i < len(clauses); i++ {
 		where += " AND " + clauses[i]
 	}
-	
+
 	return where, args
 }
 

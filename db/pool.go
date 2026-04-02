@@ -43,31 +43,31 @@ func ConfigurePool(db *sql.DB, cfg PoolConfig) error {
 
 // PoolStats holds current pool statistics.
 type PoolStats struct {
-	OpenConnections int
-	IdleConnections int
+	OpenConnections  int
+	IdleConnections  int
 	InUseConnections int
-	WaitCount       int64
-	WaitDuration    time.Duration
+	WaitCount        int64
+	WaitDuration     time.Duration
 }
 
 // GetPoolStats returns current connection pool statistics.
 func GetPoolStats(db *sql.DB) PoolStats {
 	stats := db.Stats()
 	return PoolStats{
-		OpenConnections: stats.OpenConnections,
-		IdleConnections: stats.Idle,
+		OpenConnections:  stats.OpenConnections,
+		IdleConnections:  stats.Idle,
 		InUseConnections: stats.InUse,
-		WaitCount:       stats.WaitCount,
-		WaitDuration:    stats.WaitDuration,
+		WaitCount:        stats.WaitCount,
+		WaitDuration:     stats.WaitDuration,
 	}
 }
 
 // DBMetrics holds database performance metrics.
 type DBMetrics struct {
-	QueriesExecuted   int64
-	QueriesFailed     int64
+	QueriesExecuted  int64
+	QueriesFailed    int64
 	AvgQueryDuration time.Duration
-	SlowQueries       int64
+	SlowQueries      int64
 }
 
 // WithTimeout executes a query with the configured timeout.
@@ -77,15 +77,15 @@ func WithTimeout(ctx context.Context, db *sql.DB, query string, timeout time.Dur
 	}
 
 	ctx, cancel := context.WithTimeout(ctx, timeout)
-	
+
 	done := make(chan struct{})
 	var resultErr error
-	
+
 	go func() {
 		defer close(done)
 		_, resultErr = db.ExecContext(ctx, query)
 	}()
-	
+
 	waitDone := make(chan struct{})
 	go func() {
 		select {
@@ -95,7 +95,7 @@ func WithTimeout(ctx context.Context, db *sql.DB, query string, timeout time.Dur
 		}
 		close(waitDone)
 	}()
-	
+
 	<-waitDone
 	return func() error { return resultErr }, resultErr
 }
@@ -110,11 +110,11 @@ func HealthCheck(ctx context.Context, db *sql.DB) error {
 	if err := ConnectionCheck(ctx, db); err != nil {
 		return fmt.Errorf("connection failed: %w", err)
 	}
-	
+
 	stats := GetPoolStats(db)
 	if stats.OpenConnections >= DefaultMaxOpenConns {
 		return fmt.Errorf("connection pool exhausted: %d/%d", stats.OpenConnections, DefaultMaxOpenConns)
 	}
-	
+
 	return nil
 }

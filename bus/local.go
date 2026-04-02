@@ -36,13 +36,13 @@ func New() *EventBus {
 // Subscribe adds a subscriber for an event type.
 func (eb *EventBus) Subscribe(eventType string, handler func(ctx context.Context, msg Message) error) <-chan error {
 	errChan := make(chan error, 1)
-	
+
 	ch := make(chan Message, 100)
-	
+
 	eb.mu.Lock()
 	eb.subscribers[eventType] = append(eb.subscribers[eventType], ch)
 	eb.mu.Unlock()
-	
+
 	go func() {
 		for msg := range ch {
 			if err := handler(context.Background(), msg); err != nil {
@@ -54,7 +54,7 @@ func (eb *EventBus) Subscribe(eventType string, handler func(ctx context.Context
 		}
 		close(errChan)
 	}()
-	
+
 	return errChan
 }
 
@@ -67,16 +67,16 @@ func (eb *EventBus) Publish(eventType string, payload interface{}, metadata map[
 		Metadata:  metadata,
 		Timestamp: time.Now(),
 	}
-	
+
 	eb.mu.RLock()
 	subscribers, ok := eb.subscribers[eventType]
 	eb.mu.RUnlock()
-	
+
 	if !ok || len(subscribers) == 0 {
 		eb.logger.Debug("no subscribers for event", "type", eventType)
 		return nil
 	}
-	
+
 	for _, ch := range subscribers {
 		select {
 		case ch <- msg:
@@ -84,7 +84,7 @@ func (eb *EventBus) Publish(eventType string, payload interface{}, metadata map[
 			eb.logger.Warn("subscriber channel full", "type", eventType)
 		}
 	}
-	
+
 	return nil
 }
 
@@ -108,7 +108,7 @@ func (eb *EventBus) Unsubscribe(eventType string) {
 func (eb *Eb) Close() {
 	eb.mu.Lock()
 	defer eb.mu.Unlock()
-	
+
 	for _, chs := range eb.subscribers {
 		for _, ch := range chs {
 			close(ch)
@@ -134,10 +134,10 @@ func randString(n int) string {
 
 // JSONPayload represents a JSON-encodable message.
 type JSONPayload struct {
-	Type    string          `json:"type"`
-	Data    json.RawMessage `json:"data"`
+	Type    string            `json:"type"`
+	Data    json.RawMessage   `json:"data"`
 	Meta    map[string]string `json:"meta,omitempty"`
-	TraceID string          `json:"trace_id,omitempty"`
+	TraceID string            `json:"trace_id,omitempty"`
 }
 
 // EncodeJSON encodes a message as JSON.
@@ -147,12 +147,12 @@ func (m *Message) EncodeJSON() ([]byte, error) {
 		Meta:    m.Metadata,
 		TraceID: m.Metadata["trace_id"],
 	}
-	
+
 	if data, ok := m.Payload.(json.RawMessage); ok {
 		payload.Data = data
 	} else {
 		payload.Data, _ = json.Marshal(m.Payload)
 	}
-	
+
 	return json.Marshal(payload)
 }

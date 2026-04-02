@@ -67,7 +67,7 @@ func NewJWTValidator(cfg JWTConfig) *JWTValidator {
 // GenerateTokenPair creates new access and refresh tokens.
 func (v *JWTValidator) GenerateTokenPair(ctx context.Context, userID, email string, roles []string) (TokenPair, error) {
 	now := time.Now()
-	
+
 	accessClaims := TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(v.config.AccessTokenExpiry)),
@@ -80,7 +80,7 @@ func (v *JWTValidator) GenerateTokenPair(ctx context.Context, userID, email stri
 		Roles:  roles,
 		Scope:  "access",
 	}
-	
+
 	refreshClaims := TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(now.Add(v.config.RefreshTokenExpiry)),
@@ -93,17 +93,17 @@ func (v *JWTValidator) GenerateTokenPair(ctx context.Context, userID, email stri
 		Roles:  roles,
 		Scope:  "refresh",
 	}
-	
+
 	accessToken, err := v.signClaims(accessClaims)
 	if err != nil {
 		return TokenPair{}, err
 	}
-	
+
 	refreshToken, err := v.signClaims(refreshClaims)
 	if err != nil {
 		return TokenPair{}, err
 	}
-	
+
 	return TokenPair{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
@@ -114,12 +114,12 @@ func (v *JWTValidator) GenerateTokenPair(ctx context.Context, userID, email stri
 
 func (v *JWTValidator) signClaims(claims TokenClaims) (string, error) {
 	var token *jwt.Token
-	
+
 	if v.config.PrivateKey != nil {
 		token = jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
 		return token.SignedString(v.config.PrivateKey)
 	}
-	
+
 	token = jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(v.config.SecretKey))
 }
@@ -130,11 +130,11 @@ func (v *JWTValidator) ValidateAccessToken(ctx context.Context, tokenString stri
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if claims.Scope != "access" {
 		return nil, ErrInvalidClaims
 	}
-	
+
 	return claims, nil
 }
 
@@ -144,11 +144,11 @@ func (v *JWTValidator) ValidateRefreshToken(ctx context.Context, tokenString str
 	if err != nil {
 		return nil, err
 	}
-	
+
 	if claims.Scope != "refresh" {
 		return nil, ErrInvalidClaims
 	}
-	
+
 	return claims, nil
 }
 
@@ -162,21 +162,21 @@ func (v *JWTValidator) validateToken(tokenString, expectedScope string) (*TokenC
 		}
 		return nil, ErrInvalidToken
 	}
-	
+
 	token, err := jwt.ParseWithClaims(tokenString, &TokenClaims{}, keyFunc)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	claims, ok := token.Claims.(*TokenClaims)
 	if !ok || !token.Valid {
 		return nil, ErrInvalidToken
 	}
-	
+
 	if claims.Scope != expectedScope {
 		return nil, ErrInvalidClaims
 	}
-	
+
 	return claims, nil
 }
 
@@ -184,7 +184,7 @@ func (v *JWTValidator) validateToken(tokenString, expectedScope string) (*TokenC
 func (v *JWTValidator) InvalidateToken(ctx context.Context, tokenString string) error {
 	hash := sha256.Sum256([]byte(tokenString))
 	tokenHash := base64.StdEncoding.EncodeToString(hash[:])
-	
+
 	v.logger.Info("token invalidated", "hash", tokenHash[:8])
 	return nil
 }
@@ -198,23 +198,23 @@ func (v *JWTValidator) Middleware() func(http.Handler) http.Handler {
 				http.Error(w, "authorization required", http.StatusUnauthorized)
 				return
 			}
-			
+
 			parts := strings.Split(authHeader, " ")
 			if len(parts) != 2 || parts[0] != "Bearer" {
 				http.Error(w, "invalid authorization header", http.StatusUnauthorized)
 				return
 			}
-			
+
 			claims, err := v.ValidateAccessToken(r.Context(), parts[1])
 			if err != nil {
 				http.Error(w, "invalid token: "+err.Error(), http.StatusUnauthorized)
 				return
 			}
-			
+
 			ctx := context.WithValue(r.Context(), "user_id", claims.UserID)
 			ctx = context.WithValue(ctx, "user_email", claims.Email)
 			ctx = context.WithValue(ctx, "user_roles", claims.Roles)
-			
+
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
@@ -226,7 +226,7 @@ func GenerateAPIKey(prefix string) (string, error) {
 	if _, err := rand.Read(bytes); err != nil {
 		return "", err
 	}
-	
+
 	key := base64.URLEncoding.EncodeToString(bytes)
 	if prefix != "" {
 		key = prefix + "_" + key
@@ -272,7 +272,7 @@ func (m *APIKeyManager) CreateKey(ctx context.Context, userID, name string, scop
 	if err != nil {
 		return "", nil, err
 	}
-	
+
 	prefix := key[:8]
 	apiKey := &APIKey{
 		ID:        generateID(),
@@ -284,7 +284,7 @@ func (m *APIKeyManager) CreateKey(ctx context.Context, userID, name string, scop
 		CreatedAt: time.Now(),
 		RateLimit: rateLimit,
 	}
-	
+
 	m.keys[key] = apiKey
 	return key, apiKey, nil
 }
@@ -341,7 +341,7 @@ func RequireRole(roles ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			userRoles := GetUserRoles(r.Context())
-			
+
 			for _, required := range roles {
 				for _, userRole := range userRoles {
 					if userRole == required {
@@ -350,7 +350,7 @@ func RequireRole(roles ...string) func(http.Handler) http.Handler {
 					}
 				}
 			}
-			
+
 			http.Error(w, "insufficient permissions", http.StatusForbidden)
 		})
 	}

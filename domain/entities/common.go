@@ -50,8 +50,8 @@ type Workspace struct {
 type Plan string
 
 const (
-	PlanFree  Plan = "free"
-	PlanPro   Plan = "pro"
+	PlanFree       Plan = "free"
+	PlanPro        Plan = "pro"
 	PlanEnterprise Plan = "enterprise"
 )
 
@@ -71,11 +71,11 @@ func (p Plan) CanUseFeature(feature string) bool {
 
 var freeFeatures = map[string]bool{
 	"basic_metrics": true,
-	"3_workspaces": true,
+	"3_workspaces":  true,
 }
 
 var proFeatures = map[string]bool{
 	"basic_metrics":    true,
 	"advanced_metrics": true,
-	"unlimited_ws":    true,
+	"unlimited_ws":     true,
 }

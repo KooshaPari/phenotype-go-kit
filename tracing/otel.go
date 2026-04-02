@@ -22,8 +22,8 @@ type Config struct {
 	ServiceVersion string `default:"1.0.0"`
 	Environment    string `default:"development"`
 
-	TraceExporterEndpoint string `default:"localhost:4317"`
-	TraceExporterInsecure bool   `default:"true"`
+	TraceExporterEndpoint string  `default:"localhost:4317"`
+	TraceExporterInsecure bool    `default:"true"`
 	TraceSamplingRate     float64 `default:"0.1"`
 }
 

@@ -63,9 +63,9 @@ func TestQueue_Retry(t *testing.T) {
 	queue.Start(ctx)
 
 	job := &Job{
-		Type:        "failing",
-		Payload:     []byte(`{}`),
-		MaxRetries:  3,
+		Type:       "failing",
+		Payload:    []byte(`{}`),
+		MaxRetries: 3,
 	}
 
 	err := queue.Enqueue(ctx, job)
@@ -84,7 +84,7 @@ func TestQueue_Retry(t *testing.T) {
 func TestNewEmailJob(t *testing.T) {
 	payload := EmailPayload{
 		To:      "test@example.com",
-		From:   "noreply@phenotype.dev",
+		From:    "noreply@phenotype.dev",
 		Subject: "Test Email",
 		Body:    "Hello World",
 	}

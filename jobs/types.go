@@ -8,16 +8,16 @@ import (
 
 // Job represents a background job in the queue.
 type Job struct {
-	ID        string          `json:"id"`
-	Type      string          `json:"type"`
-	Payload   json.RawMessage `json:"payload"`
-	Retries   int             `json:"retries"`
-	MaxRetries int            `json:"max_retries"`
-	Status    JobStatus       `json:"status"`
-	CreatedAt time.Time       `json:"created_at"`
-	StartedAt *time.Time      `json:"started_at,omitempty"`
-	FailedAt  *time.Time      `json:"failed_at,omitempty"`
-	Error     string          `json:"error,omitempty"`
+	ID         string          `json:"id"`
+	Type       string          `json:"type"`
+	Payload    json.RawMessage `json:"payload"`
+	Retries    int             `json:"retries"`
+	MaxRetries int             `json:"max_retries"`
+	Status     JobStatus       `json:"status"`
+	CreatedAt  time.Time       `json:"created_at"`
+	StartedAt  *time.Time      `json:"started_at,omitempty"`
+	FailedAt   *time.Time      `json:"failed_at,omitempty"`
+	Error      string          `json:"error,omitempty"`
 }
 
 // JobStatus represents the current state of a job.
