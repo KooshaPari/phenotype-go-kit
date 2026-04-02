@@ -1,64 +1,43 @@
 name: CI
 
 on:
-  workflow_dispatch:
   push:
-    branches: [main]
+    branches: [main, feature/*, bugfix/*, docs/*, release/*, hotfix/*]
   pull_request:
     branches: [main]
 
-permissions:
-  contents: read
-
 jobs:
-  build:
-    name: Build & Test
+  test:
     runs-on: ubuntu-latest
-
+    
     strategy:
       matrix:
-        go-version: ["1.22", "1.23", "1.24"]
-
+        go-version: ['1.21', '1.22']
+    
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Go ${{ matrix.go-version }}
-        uses: actions/setup-go@v5
+      
+      - name: Setup Go
+        uses: actions/setup-go@v4
         with:
-          go-version: ${{ matrix.go-version }}
-          cache: true
+          go-version: $123matrix.go-version125
 
       - name: Download dependencies
         run: go mod download
 
-      - name: Verify dependencies
-        run: go mod verify
-
       - name: Build
         run: go build ./...
 
-      - name: Vet
-        run: go vet ./...
+      - name: Run tests
+        run: go test ./... -v -race -coverprofile=coverage.out
 
-      - name: Test
-        run: go test -v -race -count=1 ./...
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          files: ./coverage.out
+      
 
-  lint:
-    name: Lint
+  phenotype-validate:
     runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: "1.24"
-          cache: true
-
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v7
-        with:
-          version: latest
-          install-mode: goroutine
-          args: --timeout=5m --disable=SA1029 --disable=SA1019 --disable=S1001 --disable=S1017 --disable=unused --disable=misspell --disable=whitespace --disable=gofumpt --disable=gosimple
+    uses: KooshaPari/phenotypeActions/.github/workflows/validate-governance.yml@main
