@@ -1,0 +1,10 @@
+id: US-001
+title: Core Infrastructure Capability Story
+description: As a user, I want the system shall provide core infrastructure functionality..
+acceptance_criteria:
+- 'NewAlertRuleSet: NewAlertRuleSet creates a new alert rule set'
+- 'AddGroup: AddGroup adds an alert group'
+- 'HighErrorRate: HighErrorRate creates an alert for high error rates'
+- 'HighLatency: HighLatency creates an alert for high latency'
+- 'ResourceExhaustion: ResourceExhaustion creates an alert for system resource exhaustion'
+fr_id: FR-001

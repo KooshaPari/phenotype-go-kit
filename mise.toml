@@ -1,35 +1,35 @@
 [tasks.format]
 description = "Format code"
 
-run = "gofmt -w ."
+run = "npx prettier --write ."
 
 
 [tasks.lint]
 description = "Lint code"
 
-run = "golangci-lint run"
+run = "eslint ."
 
 
 [tasks.test]
 description = "Run tests"
 
-run = "go test ./..."
+run = "npm test"
 
 
 [tasks.build]
 description = "Build project"
 
-run = "go build ./..."
+run = "npm run build"
 
 
 [tasks.audit]
 description = "Audit dependencies"
 
-run = "go list -json -m all | nancy sleuth"
+run = "npm audit"
 
 
 [tasks.docs:build]
 description = "Build documentation"
 
-run = "go doc -all -html ./... > docs/api.html"
+run = "typedoc --out docs"
 

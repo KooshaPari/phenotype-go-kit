@@ -1,0 +1,26 @@
+id: FR-002
+title: Configuration Capability
+description: The system shall provide configuration functionality.
+priority: high
+status: implemented
+acceptance_criteria:
+- 'NewConfigLoader: NewConfigLoader creates a new ConfigLoader instance'
+- 'Load: Load loads configuration from the configured file path'
+- 'LoadDefaults: LoadDefaults sets default values for configuration keys'
+- 'Unmarshal: Unmarshal unmarshals the configuration into a struct'
+- 'Get: Get retrieves a value from the configuration'
+related_entities:
+- NewConfigLoader
+- Load
+- LoadDefaults
+- Unmarshal
+- Get
+- GetString
+- GetInt
+- GetBool
+- New
+- Load
+- Get
+- GetString
+user_story_id: null
+adr_id: null

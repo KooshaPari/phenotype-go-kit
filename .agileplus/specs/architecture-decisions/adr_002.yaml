@@ -1,0 +1,6 @@
+id: ADR-002
+title: Configuration Implementation
+context: Configuration requires 12 code entities
+decision: Use go for Configuration
+consequences: Consistent codebase in go
+status: accepted

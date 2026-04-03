@@ -1,0 +1,6 @@
+id: ADR-001
+title: Core Infrastructure Implementation
+context: Core Infrastructure requires 601 code entities
+decision: Use go for Core Infrastructure
+consequences: Consistent codebase in go
+status: accepted
